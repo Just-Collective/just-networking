@@ -1,0 +1,112 @@
+plugins {
+    id 'java'
+    id 'jacoco'
+    id 'com.diffplug.spotless'
+    id 'com.github.ben-manes.versions'
+}
+
+group = 'com.just.networking'
+version = '0.1.0'
+
+java {
+    var version = JavaVersion.VERSION_21
+
+    sourceCompatibility = version
+    targetCompatibility = version
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compileOnly 'org.jetbrains:annotations:26.0.2'
+
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+spotless {
+    java {
+        eclipse().configFile("eclipse-formatter.xml")
+        endWithNewline()
+        importOrder("", "java", group.toString(), "\\#")
+        leadingTabsToSpaces(4)
+        removeUnusedImports()
+        trimTrailingWhitespace()
+    }
+}
+
+jacoco {
+    toolVersion = "0.8.12"
+}
+
+build {
+    dependsOn spotlessApply
+}
+
+test {
+    useJUnitPlatform()
+    finalizedBy jacocoTestReport, jacocoTestCoverageVerification
+
+    reports {
+        junitXml.required = false
+        html.required = true
+    }
+
+    testLogging {
+        exceptionFormat = 'full'
+        showStackTraces = true
+        events 'failed'
+    }
+}
+
+jacocoTestReport {
+    dependsOn test
+    outputs.upToDateWhen { false }
+
+    reports {
+        csv.required = false
+        xml.required = false
+        html.required = true
+    }
+
+    classDirectories.setFrom(files(classDirectories.files.collect { dir ->
+        fileTree(dir) {
+            exclude(
+                "${project.group.toString().replace('.', '/')}/**/internal",
+            )
+        }
+    }))
+
+    doLast {
+        def htmlReportDir = reports.html.outputLocation.get().asFile
+        if (htmlReportDir.exists()) {
+            logger.lifecycle("The JaCoCo test report is available here: file://${htmlReportDir}/index.html")
+        } else {
+            logger.lifecycle("JaCoCo HTML report was not generated.")
+        }
+    }
+}
+
+
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            classDirectories.setFrom(jacocoTestReport.classDirectories)
+
+            limit {
+                minimum = 0.8
+            }
+        }
+
+        rule {
+            element = 'CLASS'
+
+            limit {
+                counter = 'LINE'
+                value = 'TOTALCOUNT'
+            }
+        }
+    }
+}

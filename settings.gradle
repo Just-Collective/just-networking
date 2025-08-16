@@ -1,0 +1,14 @@
+pluginManagement {
+    plugins {
+        id 'com.diffplug.spotless'           version spotlessVersion
+        id 'com.github.ben-manes.versions'   version versionsVersion
+    }
+
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+
+rootProject.name = 'just-networking'
+
