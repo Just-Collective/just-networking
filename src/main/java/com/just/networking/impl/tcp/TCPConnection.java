@@ -4,18 +4,17 @@ import java.io.IOException;
 import java.nio.channels.SocketChannel;
 
 import com.just.networking.Connection;
-import com.just.networking.Transport;
 
-public class TCPConnection implements Connection {
+public class TCPConnection implements Connection<TCPTransport> {
 
-    private final Transport transport;
+    private final TCPTransport transport;
 
     public TCPConnection(SocketChannel socketChannel) {
         this.transport = new TCPTransport(socketChannel);
     }
 
     @Override
-    public Transport transport() {
+    public TCPTransport transport() {
         return transport;
     }
 

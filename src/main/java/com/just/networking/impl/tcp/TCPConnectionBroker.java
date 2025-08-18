@@ -1,5 +1,7 @@
 package com.just.networking.impl.tcp;
 
+import com.bvanseg.just.functional.result.Result;
+
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.SocketAddress;
@@ -9,10 +11,10 @@ import java.nio.channels.UnresolvedAddressException;
 
 import com.just.networking.ConnectionBroker;
 
-public class TCPConnectionBroker implements ConnectionBroker<SocketAddress> {
+public class TCPConnectionBroker implements ConnectionBroker<TCPConnection, SocketAddress> {
 
     @Override
-    public ConnectResult connect(SocketAddress socketAddress) {
+    public Result<TCPConnection, Void> connect(SocketAddress socketAddress) {
         try {
             var socketChannel = SocketChannel.open();
             // pick blocking semantics explicitly.
@@ -23,14 +25,15 @@ public class TCPConnectionBroker implements ConnectionBroker<SocketAddress> {
             // blocking connect - returns only when connected or throws.
             socketChannel.connect(socketAddress);
 
-            return new ConnectResult.Connected(new TCPConnection(socketChannel));
+            return Result.ok(new TCPConnection(socketChannel));
 
+            // TODO:
         } catch (UnresolvedAddressException e) {
-            return new ConnectResult.Refused("Unresolved address: " + socketAddress);
+            return Result.err(null);
         } catch (ConnectException e) {
-            return new ConnectResult.Refused(e.getMessage());
+            return Result.err(null);
         } catch (IOException e) {
-            return new ConnectResult.Failed(e);
+            return Result.err(null);
         }
     }
 }

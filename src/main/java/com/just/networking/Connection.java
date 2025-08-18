@@ -2,9 +2,9 @@ package com.just.networking;
 
 import java.io.IOException;
 
-public interface Connection extends AutoCloseable {
+public interface Connection<T extends Transport> extends AutoCloseable {
 
-    Transport transport();
+    T transport();
 
     default boolean isOpen() {
         return transport().isOpen();

@@ -5,7 +5,7 @@ import java.nio.ByteBuffer;
 import com.just.networking.Connection;
 import com.just.networking.impl.msg.Message;
 
-public interface MessageReadLoopHandler<C extends Connection> {
+public interface MessageReadLoopHandler<C extends Connection<?>> {
 
     default void onConnect(C connection) {}
 

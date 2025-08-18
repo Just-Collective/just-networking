@@ -3,7 +3,7 @@ package com.just.networking.server;
 import java.io.IOException;
 
 @FunctionalInterface
-public interface ServerBindBroker<Target, Connection extends ServerConnection> {
+public interface ServerBindBroker<T, SC extends ServerConnection<?>> {
 
-    Connection bind(Target target) throws IOException;
+    SC bind(T target) throws IOException;
 }

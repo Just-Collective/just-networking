@@ -9,7 +9,7 @@ public interface FrameReadLoopHandler<C extends Connection> {
 
     default void onConnect(C connection) throws IOException {}
 
-    void onReceiveFrame(C connection, int length, ByteBuffer payload) throws IOException; // read-only slice
+    void onReceiveFrame(C connection, ByteBuffer payload) throws IOException; // read-only slice
 
     default void onDisconnect(C connection) throws IOException {}
 }

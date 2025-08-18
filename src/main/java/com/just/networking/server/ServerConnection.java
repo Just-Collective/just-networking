@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import com.just.networking.Connection;
 
-public interface ServerConnection<C extends Connection> extends AutoCloseable {
+public interface ServerConnection<C extends Connection<?>> extends AutoCloseable {
 
     boolean isOpen();
 

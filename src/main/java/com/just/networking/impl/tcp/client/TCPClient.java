@@ -1,25 +1,27 @@
 package com.just.networking.impl.tcp.client;
 
+import com.bvanseg.just.functional.result.Result;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 
-import com.just.networking.Connection;
 import com.just.networking.ConnectionBroker;
+import com.just.networking.impl.tcp.TCPConnection;
 import com.just.networking.impl.tcp.TCPConnectionBroker;
 
 public class TCPClient implements AutoCloseable {
 
-    private volatile Connection connection;
+    private volatile TCPConnection connection;
 
-    private final ConnectionBroker<SocketAddress> connectionBroker;
+    private final ConnectionBroker<TCPConnection, SocketAddress> connectionBroker;
 
     public TCPClient() {
         this(new TCPConnectionBroker());
     }
 
-    public TCPClient(ConnectionBroker<SocketAddress> broker) {
+    public TCPClient(TCPConnectionBroker broker) {
         this.connectionBroker = broker;
     }
 
@@ -28,17 +30,15 @@ public class TCPClient implements AutoCloseable {
         disconnect();
     }
 
-    public ConnectionBroker.ConnectResult connect(String host, int port) {
+    public Result<TCPConnection, Void> connect(String host, int port) {
         // Make sure to disconnect before attempting to make a new connection.
         disconnect();
 
         // Attempt to make a new connection.
         var result = connectionBroker.connect(new InetSocketAddress(host, port));
 
-        if (result instanceof ConnectionBroker.ConnectResult.Connected(Connection successfulConnection)) {
-            // if the connection attempt succeeded, store the connection.
-            this.connection = successfulConnection;
-        }
+        // if the connection attempt succeeded, store the connection.
+        result.ifOk(connection -> this.connection = connection);
 
         // Bubble up the result to the caller.
         return result;
@@ -73,8 +73,8 @@ public class TCPClient implements AutoCloseable {
 
         try {
             c.close();
-        } catch (IOException ignored) {
-            ignored.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

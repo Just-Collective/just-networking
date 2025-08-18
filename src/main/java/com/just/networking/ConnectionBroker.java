@@ -1,16 +1,10 @@
 package com.just.networking;
 
+import com.bvanseg.just.functional.result.Result;
+
 @FunctionalInterface
-public interface ConnectionBroker<Target> {
+public interface ConnectionBroker<C extends Connection<?>, Target> {
 
-    ConnectResult connect(Target ctx);
+    Result<C, Void> connect(Target ctx);
 
-    sealed interface ConnectResult {
-
-        record Connected(Connection connection) implements ConnectResult {}
-
-        record Refused(String reason) implements ConnectResult {}
-
-        record Failed(Throwable cause) implements ConnectResult {}
-    }
 }

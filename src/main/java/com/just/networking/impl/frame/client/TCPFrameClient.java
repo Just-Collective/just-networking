@@ -1,37 +1,26 @@
 package com.just.networking.impl.frame.client;
 
+import com.bvanseg.just.functional.result.Result;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import com.just.networking.ChannelIO;
-import com.just.networking.ConnectionBroker;
-import com.just.networking.impl.frame.TCPFrameChannel;
+import com.just.networking.impl.frame.TCPFrameConnection;
+import com.just.networking.impl.tcp.TCPConnectionBroker;
 import com.just.networking.impl.tcp.client.TCPClient;
 
 public final class TCPFrameClient implements AutoCloseable {
 
+    private volatile TCPFrameConnection tcpFrameConnection;
+
     private final TCPClient tcpClient;
 
-    private final TCPFrameChannel tcpFrameChannel;
-
     public TCPFrameClient() {
-        this(new TCPClient());
+        this(new TCPClient(new TCPConnectionBroker()));
     }
 
     public TCPFrameClient(TCPClient tcpClient) {
         this.tcpClient = tcpClient;
-        this.tcpFrameChannel = new TCPFrameChannel(new ChannelIO() {
-
-            @Override
-            public int read(ByteBuffer dst) throws IOException {
-                return tcpClient.read(dst);
-            }
-
-            @Override
-            public int write(ByteBuffer src) throws IOException {
-                return tcpClient.write(src);
-            }
-        });
     }
 
     @Override
@@ -39,25 +28,42 @@ public final class TCPFrameClient implements AutoCloseable {
         disconnect();
     }
 
-    public ConnectionBroker.ConnectResult connect(String host, int port) {
-        return tcpClient.connect(host, port);
+    public Result<TCPFrameConnection, Void> connect(String host, int port) {
+        var result = tcpClient.connect(host, port);
+
+        if (result.isOk()) {
+            // Promote the connection to a TCPFrameConnection type.
+            this.tcpFrameConnection = new TCPFrameConnection(result.unwrap());
+            return Result.ok(tcpFrameConnection);
+        }
+
+        return Result.err(result.unwrapErr());
     }
 
     public ByteBuffer readFrame() throws IOException {
-        return tcpFrameChannel.readFrame();
+        // TODO: Null check.
+        return tcpFrameConnection.transport().readFrame();
     }
 
     public void sendFrame(ByteBuffer payload) throws IOException {
-        tcpFrameChannel.sendFrame(payload);
+        // TODO: Null check.
+        tcpFrameConnection.transport().sendFrame(payload);
     }
 
     public void flushWrites() throws IOException {
-        tcpFrameChannel.flushWrites();
+        // TODO: Null check.
+        tcpFrameConnection.transport().flushWrites();
     }
 
     public void disconnect() {
         tcpClient.disconnect();
-        tcpFrameChannel.close();
+
+        // TODO: Null check.
+        try {
+            tcpFrameConnection.transport().close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public boolean isOpen() {

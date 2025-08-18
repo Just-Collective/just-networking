@@ -7,15 +7,15 @@ import java.nio.ByteOrder;
 import com.just.networking.impl.tcp.TCPConnection;
 import com.just.networking.server.ReadLoop;
 
-public final class TcpByteReadLoop<C extends TCPConnection> implements ReadLoop<C, ByteReadLoopHandler<C>> {
+public final class TCPByteReadLoop<C extends TCPConnection> implements ReadLoop<C, ByteReadLoopHandler<C>> {
 
     private final int bufferSize;
 
-    public TcpByteReadLoop() {
+    public TCPByteReadLoop() {
         this(64 * 1024);
     }
 
-    public TcpByteReadLoop(int bufferSize) {
+    public TCPByteReadLoop(int bufferSize) {
         this.bufferSize = Math.max(4096, bufferSize);
     }
 
@@ -27,19 +27,26 @@ public final class TcpByteReadLoop<C extends TCPConnection> implements ReadLoop<
 
         try {
             while (connection.isOpen()) {
-                int n = connection.transport().read(buf);
-                if (n == -1)
+                var n = connection.transport().read(buf);
+
+                if (n == -1) {
                     break;
-                if (n == 0)
-                    continue; // for non-blocking cases
+                }
+
+                if (n == 0) {
+                    continue;
+                }
 
                 buf.flip();
 
                 // Hand a read-only view of the bytes we just received.
                 handler.onReceiveBytes(connection, buf.asReadOnlyBuffer());
 
-                buf.clear(); // ready for next read
+                // ready for next read.
+                buf.clear();
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         } finally {
             handler.onDisconnect(connection);
         }

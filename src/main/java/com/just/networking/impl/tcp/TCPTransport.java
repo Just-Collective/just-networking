@@ -19,12 +19,10 @@ public class TCPTransport implements Transport {
         return socketChannel.isOpen();
     }
 
-    @Override
     public int read(ByteBuffer dst) throws IOException {
         return socketChannel.read(dst);
     }
 
-    @Override
     public int write(ByteBuffer src) throws IOException {
         return socketChannel.write(src);
     }
