@@ -10,7 +10,7 @@ import com.just.networking.impl.tcp.TCPConnection;
 
 public class TCPClient {
 
-    private final ClientConnectionBroker<TCPConnection, SocketAddress> clientConnectionBroker;
+    private final ClientConnectionBroker<TCPConnection, SocketAddress, TCPClientConnectionBroker.ConnectFailure<SocketAddress>> clientConnectionBroker;
 
     public TCPClient() {
         this(new TCPClientConnectionBroker());
@@ -20,7 +20,10 @@ public class TCPClient {
         this.clientConnectionBroker = broker;
     }
 
-    public Result<TCPConnection, Void> connect(String host, int port) {
+    public Result<TCPConnection, TCPClientConnectionBroker.ConnectFailure<SocketAddress>> connect(
+        String host,
+        int port
+    ) {
         return clientConnectionBroker.connect(new InetSocketAddress(host, port));
     }
 }

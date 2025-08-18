@@ -4,12 +4,14 @@ import com.bvanseg.just.functional.result.Result;
 import com.bvanseg.just.serialization.codec.stream.StreamCodec;
 import com.bvanseg.just.serialization.codec.stream.schema.StreamCodecSchema;
 
+import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.util.Map;
 
 import com.just.networking.impl.frame.client.TCPFrameClient;
 import com.just.networking.impl.message.Message;
 import com.just.networking.impl.message.TCPMessageConnection;
+import com.just.networking.impl.tcp.client.TCPClientConnectionBroker;
 
 public class TCPMessageClient {
 
@@ -36,7 +38,10 @@ public class TCPMessageClient {
         this.tcpFrameClient = tcpFrameClient;
     }
 
-    public Result<TCPMessageConnection, Void> connect(String host, int port) {
+    public Result<TCPMessageConnection, TCPClientConnectionBroker.ConnectFailure<SocketAddress>> connect(
+        String host,
+        int port
+    ) {
         var result = tcpFrameClient.connect(host, port);
 
         if (result.isOk()) {

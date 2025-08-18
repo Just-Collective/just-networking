@@ -2,6 +2,8 @@ package com.just.networking.impl.frame.client;
 
 import com.bvanseg.just.functional.result.Result;
 
+import java.net.SocketAddress;
+
 import com.just.networking.impl.frame.TCPFrameConnection;
 import com.just.networking.impl.tcp.client.TCPClient;
 import com.just.networking.impl.tcp.client.TCPClientConnectionBroker;
@@ -18,7 +20,10 @@ public final class TCPFrameClient {
         this.tcpClient = tcpClient;
     }
 
-    public Result<TCPFrameConnection, Void> connect(String host, int port) {
+    public Result<TCPFrameConnection, TCPClientConnectionBroker.ConnectFailure<SocketAddress>> connect(
+        String host,
+        int port
+    ) {
         var result = tcpClient.connect(host, port);
 
         if (result.isOk()) {

@@ -3,8 +3,7 @@ package com.just.networking;
 import com.bvanseg.just.functional.result.Result;
 
 @FunctionalInterface
-public interface ClientConnectionBroker<C extends Connection<?>, Target> {
+public interface ClientConnectionBroker<C extends Connection<?>, T, E> {
 
-    Result<C, Void> connect(Target ctx);
-
+    Result<C, E> connect(T ctx);
 }
