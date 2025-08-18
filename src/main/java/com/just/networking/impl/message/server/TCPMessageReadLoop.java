@@ -38,8 +38,6 @@ public final class TCPMessageReadLoop<C extends TCPMessageConnection> implements
                 connection.asTCPFrameConnection(),
                 ($, frame) -> decodeFrameToMessage(connection, handler, frame)
             );
-        } catch (Exception e) {
-            e.printStackTrace();
         } finally {
             handler.onDisconnect(connection);
         }
@@ -71,8 +69,8 @@ public final class TCPMessageReadLoop<C extends TCPMessageConnection> implements
 
         try {
             // Decode from the remaining bytes of the frame.
-            var msg = codec.decode(schema, frame);
-            handler.onReceiveMessage(connection, msg);
+            var message = codec.decode(schema, frame);
+            handler.onReceiveMessage(connection, message);
         } catch (Exception e) {
             // Hand the remaining (post-typeId) payload to help with diagnostics.
             handler.onDecodeError(connection, typeId, frame.asReadOnlyBuffer(), e);
