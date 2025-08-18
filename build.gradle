@@ -1,5 +1,7 @@
 plugins {
+    id 'idea'
     id 'java'
+    id 'java-library'
     id 'jacoco'
     id 'com.diffplug.spotless'
     id 'com.github.ben-manes.versions'
@@ -21,6 +23,8 @@ repositories {
 }
 
 dependencies {
+    api "org.slf4j:slf4j-api:2.0.17"
+
     compileOnly 'org.jetbrains:annotations:26.0.2'
 
     implementation 'com.github.bvanseg:just:973d368f5f'

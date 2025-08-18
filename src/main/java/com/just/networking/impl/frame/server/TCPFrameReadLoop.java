@@ -8,22 +8,22 @@ import com.just.networking.server.ReadLoop;
 public final class TCPFrameReadLoop<C extends TCPFrameConnection> implements ReadLoop<C, FrameReadLoopHandler<C>> {
 
     @Override
-    public void run(C connection, FrameReadLoopHandler<C> handler) throws IOException {
+    public void run(C connection, FrameReadLoopHandler<C> handler) {
         handler.onConnect(connection);
 
         try {
             while (connection.isOpen()) {
-                var framePayload = connection.transport().readFrame();
+                try {
+                    var framePayload = connection.transport().readFrame();
 
-                if (framePayload != null) {
-                    handler.onReceiveFrame(connection, framePayload);
-                } else {
-                    // TODO: Make a proper log.
-                    System.out.println("RECEIVED NULL FRAME, THIS SHOULDN'T HAPPEN!");
+                    // TODO: Decide what to do here if the frame payload *is* null.
+                    if (framePayload != null) {
+                        handler.onReceiveFrame(connection, framePayload);
+                    }
+                } catch (IOException e) {
+                    handler.onFrameReadError(connection, e);
                 }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         } finally {
             handler.onDisconnect(connection);
         }

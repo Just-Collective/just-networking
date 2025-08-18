@@ -9,7 +9,9 @@ public interface FrameReadLoopHandler<C extends TCPFrameConnection> {
 
     default void onConnect(C connection) {}
 
-    void onReceiveFrame(C connection, ByteBuffer payload) throws IOException;
+    void onReceiveFrame(C connection, ByteBuffer payload);
 
     default void onDisconnect(C connection) {}
+
+    default void onFrameReadError(C connection, IOException exception) {}
 }
