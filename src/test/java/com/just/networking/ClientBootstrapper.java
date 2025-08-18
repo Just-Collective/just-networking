@@ -4,15 +4,16 @@ import java.io.IOException;
 import java.util.Objects;
 import java.util.Scanner;
 
-import com.just.networking.impl.message.client.TCPMessageClient;
+import com.just.networking.impl.message.TCPMessageConnection;
 import com.just.networking.message.ChatMessage;
 import com.just.networking.message.EchoMessage;
 import com.just.networking.message.PingMessage;
 
 public class ClientBootstrapper {
 
-    public static void runClientMessageInputLoop(TCPMessageClient TCPMessageClient) throws IOException {
+    public static void runClientMessageInputLoop(TCPMessageConnection connection) throws IOException {
         var scanner = new Scanner(System.in);
+        var transport = connection.transport();
 
         while (true) {
             var line = scanner.nextLine();
@@ -20,38 +21,41 @@ public class ClientBootstrapper {
             if (Objects.equals(line, "END")) {
                 break;
             } else if (line.startsWith("SPAM")) {
-                runClientThroughputStressTest(TCPMessageClient);
+                runClientThroughputStressTest(connection);
             } else if (line.startsWith("PING")) {
-                TCPMessageClient.sendMessage(new PingMessage(System.currentTimeMillis()));
-                TCPMessageClient.flushWrites();
+                transport.sendMessage(new PingMessage(System.currentTimeMillis()));
+                transport.flushWrites();
             } else if (line.startsWith("ECHO")) {
-                TCPMessageClient.sendMessage(new EchoMessage(line));
-                TCPMessageClient.flushWrites();
+                transport.sendMessage(new EchoMessage(line));
+                transport.flushWrites();
             } else {
-                TCPMessageClient.sendMessage(new ChatMessage(line));
-                TCPMessageClient.flushWrites();
+                transport.sendMessage(new ChatMessage(line));
+                transport.flushWrites();
             }
 
         }
     }
 
-    public static void runClientThroughputStressTest(TCPMessageClient TCPMessageClient) throws IOException {
+    public static void runClientThroughputStressTest(TCPMessageConnection connection) throws IOException {
         var start = System.currentTimeMillis();
+        var transport = connection.transport();
 
         for (var i = 0; i < 1_000; i++) {
-            TCPMessageClient.sendMessage(new ChatMessage("Hello, world!"));
+            transport.sendMessage(new ChatMessage("Hello, world!"));
         }
 
-        TCPMessageClient.flushWrites();
+        transport.flushWrites();
 
         var end = System.currentTimeMillis() - start;
         System.out.println("Took: " + end + "ms");
     }
 
-    public static void startClientReader(TCPMessageClient TCPMessageClient) {
+    public static void startClientReader(TCPMessageConnection connection) {
+        var transport = connection.transport();
+
         Thread.startVirtualThread(() -> {
-            while (TCPMessageClient.isOpen()) {
-                var m = TCPMessageClient.pollMessage();
+            while (transport.isOpen()) {
+                var m = transport.pollMessage();
 
                 if (m != null) {
                     switch (m) {

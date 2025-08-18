@@ -39,10 +39,10 @@ public class TCPClientTest {
 
         // Use client.
         connectionResult.ifOk(connection -> {
-            ClientBootstrapper.startClientReader(msgClient);
+            ClientBootstrapper.startClientReader(connection);
 
             try {
-                ClientBootstrapper.runClientMessageInputLoop(msgClient);
+                ClientBootstrapper.runClientMessageInputLoop(connection);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -51,7 +51,13 @@ public class TCPClientTest {
         // Sleep for 1 second to give the server a moment to ingest all the messages.
         Thread.sleep(1000);
         // Close the client first before closing the server.
-        msgClient.close();
+        connectionResult.ifOk(connection -> {
+            try {
+                connection.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
         tcpMessageServer.close();
     }
 
