@@ -1,4 +1,4 @@
-package com.just.networking.impl.msg;
+package com.just.networking.impl.message;
 
 import com.bvanseg.just.serialization.codec.stream.StreamCodec;
 

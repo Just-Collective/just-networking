@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.Objects;
 import java.util.Scanner;
 
-import com.just.networking.impl.msg.client.TCPMessageClient;
+import com.just.networking.impl.message.client.TCPMessageClient;
 import com.just.networking.message.ChatMessage;
 import com.just.networking.message.EchoMessage;
 import com.just.networking.message.PingMessage;

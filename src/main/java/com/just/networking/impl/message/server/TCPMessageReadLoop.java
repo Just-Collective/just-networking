@@ -1,4 +1,4 @@
-package com.just.networking.impl.msg.server;
+package com.just.networking.impl.message.server;
 
 import com.bvanseg.just.serialization.codec.stream.StreamCodec;
 import com.bvanseg.just.serialization.codec.stream.schema.StreamCodecSchema;
@@ -8,8 +8,8 @@ import java.nio.ByteBuffer;
 import java.util.Map;
 
 import com.just.networking.impl.frame.server.TCPFrameReadLoop;
-import com.just.networking.impl.msg.Message;
-import com.just.networking.impl.msg.TCPMessageConnection;
+import com.just.networking.impl.message.Message;
+import com.just.networking.impl.message.TCPMessageConnection;
 import com.just.networking.server.ReadLoop;
 
 public final class TCPMessageReadLoop<C extends TCPMessageConnection> implements ReadLoop<C, MessageReadLoopHandler<C>> {

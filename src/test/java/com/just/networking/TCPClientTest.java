@@ -6,9 +6,9 @@ import com.bvanseg.just.serialization.codec.stream.schema.impl.ByteBufferStreamC
 import java.io.IOException;
 import java.util.Map;
 
-import com.just.networking.impl.msg.Message;
-import com.just.networking.impl.msg.client.TCPMessageClient;
-import com.just.networking.impl.msg.server.TCPMessageServer;
+import com.just.networking.impl.message.Message;
+import com.just.networking.impl.message.client.TCPMessageClient;
+import com.just.networking.impl.message.server.TCPMessageServer;
 import com.just.networking.message.ChatMessage;
 import com.just.networking.message.EchoMessage;
 import com.just.networking.message.PingMessage;

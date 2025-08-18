@@ -1,4 +1,4 @@
-package com.just.networking.impl.msg.client;
+package com.just.networking.impl.message.client;
 
 import com.bvanseg.just.functional.result.Result;
 import com.bvanseg.just.serialization.codec.stream.StreamCodec;
@@ -9,8 +9,8 @@ import java.nio.ByteBuffer;
 import java.util.Map;
 
 import com.just.networking.impl.frame.client.TCPFrameClient;
-import com.just.networking.impl.msg.Message;
-import com.just.networking.impl.msg.TCPMessageConnection;
+import com.just.networking.impl.message.Message;
+import com.just.networking.impl.message.TCPMessageConnection;
 
 public class TCPMessageClient implements AutoCloseable {
 

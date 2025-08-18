@@ -4,7 +4,7 @@ import com.bvanseg.just.serialization.codec.stream.RecordStreamCodec;
 import com.bvanseg.just.serialization.codec.stream.StreamCodec;
 import com.bvanseg.just.serialization.codec.stream.impl.StreamCodecs;
 
-import com.just.networking.impl.msg.Message;
+import com.just.networking.impl.message.Message;
 
 public record ChatMessage(String message) implements Message<ChatMessage> {
 

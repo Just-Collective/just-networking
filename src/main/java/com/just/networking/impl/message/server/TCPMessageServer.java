@@ -1,4 +1,4 @@
-package com.just.networking.impl.msg.server;
+package com.just.networking.impl.message.server;
 
 import com.bvanseg.just.serialization.codec.stream.StreamCodec;
 import com.bvanseg.just.serialization.codec.stream.schema.StreamCodecSchema;
@@ -9,8 +9,8 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 import com.just.networking.impl.frame.TCPFrameConnection;
-import com.just.networking.impl.msg.Message;
-import com.just.networking.impl.msg.TCPMessageConnection;
+import com.just.networking.impl.message.Message;
+import com.just.networking.impl.message.TCPMessageConnection;
 import com.just.networking.impl.tcp.server.TCPServer;
 import com.just.networking.impl.tcp.server.TCPServerBindBroker;
 

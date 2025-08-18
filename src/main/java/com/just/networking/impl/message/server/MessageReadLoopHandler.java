@@ -1,9 +1,9 @@
-package com.just.networking.impl.msg.server;
+package com.just.networking.impl.message.server;
 
 import java.nio.ByteBuffer;
 
-import com.just.networking.impl.msg.Message;
-import com.just.networking.impl.msg.TCPMessageConnection;
+import com.just.networking.impl.message.Message;
+import com.just.networking.impl.message.TCPMessageConnection;
 
 public interface MessageReadLoopHandler<C extends TCPMessageConnection> {
 
