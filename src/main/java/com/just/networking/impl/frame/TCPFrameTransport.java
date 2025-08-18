@@ -3,8 +3,8 @@ package com.just.networking.impl.frame;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import com.just.networking.ChannelIO;
 import com.just.networking.Transport;
+import com.just.networking.impl.frame.channel.TCPFrameChannel;
 import com.just.networking.impl.tcp.TCPTransport;
 
 public class TCPFrameTransport implements Transport {
@@ -15,16 +15,17 @@ public class TCPFrameTransport implements Transport {
 
     public TCPFrameTransport(TCPTransport tcpTransport) {
         this.tcpTransport = tcpTransport;
-        this.tcpFrameChannel = new TCPFrameChannel(new ChannelIO() {
-
-            @Override
-            public int read(ByteBuffer dst) throws IOException {
-                return tcpTransport.read(dst);
+        this.tcpFrameChannel = new TCPFrameChannel(byteBuffer -> {
+            try {
+                return tcpTransport.read(byteBuffer);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
-
-            @Override
-            public int write(ByteBuffer src) throws IOException {
-                return tcpTransport.write(src);
+        }, byteBuffer -> {
+            try {
+                return tcpTransport.write(byteBuffer);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
         });
     }
