@@ -2,10 +2,10 @@ package com.just.networking.impl.msg.server;
 
 import java.nio.ByteBuffer;
 
-import com.just.networking.Connection;
 import com.just.networking.impl.msg.Message;
+import com.just.networking.impl.msg.TCPMessageConnection;
 
-public interface MessageReadLoopHandler<C extends Connection<?>> {
+public interface MessageReadLoopHandler<C extends TCPMessageConnection> {
 
     default void onConnect(C connection) {}
 
