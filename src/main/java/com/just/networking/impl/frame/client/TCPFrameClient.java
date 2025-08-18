@@ -6,8 +6,8 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import com.just.networking.impl.frame.TCPFrameConnection;
-import com.just.networking.impl.tcp.TCPConnectionBroker;
 import com.just.networking.impl.tcp.client.TCPClient;
+import com.just.networking.impl.tcp.client.TCPClientConnectionBroker;
 
 public final class TCPFrameClient implements AutoCloseable {
 
@@ -16,7 +16,7 @@ public final class TCPFrameClient implements AutoCloseable {
     private final TCPClient tcpClient;
 
     public TCPFrameClient() {
-        this(new TCPClient(new TCPConnectionBroker()));
+        this(new TCPClient(new TCPClientConnectionBroker()));
     }
 
     public TCPFrameClient(TCPClient tcpClient) {

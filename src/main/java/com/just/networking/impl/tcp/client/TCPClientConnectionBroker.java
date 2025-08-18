@@ -1,4 +1,4 @@
-package com.just.networking.impl.tcp;
+package com.just.networking.impl.tcp.client;
 
 import com.bvanseg.just.functional.result.Result;
 
@@ -9,9 +9,10 @@ import java.net.StandardSocketOptions;
 import java.nio.channels.SocketChannel;
 import java.nio.channels.UnresolvedAddressException;
 
-import com.just.networking.ConnectionBroker;
+import com.just.networking.ClientConnectionBroker;
+import com.just.networking.impl.tcp.TCPConnection;
 
-public class TCPConnectionBroker implements ConnectionBroker<TCPConnection, SocketAddress> {
+public class TCPClientConnectionBroker implements ClientConnectionBroker<TCPConnection, SocketAddress> {
 
     @Override
     public Result<TCPConnection, Void> connect(SocketAddress socketAddress) {

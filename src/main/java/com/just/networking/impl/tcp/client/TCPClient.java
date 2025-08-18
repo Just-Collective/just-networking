@@ -7,22 +7,21 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 
-import com.just.networking.ConnectionBroker;
+import com.just.networking.ClientConnectionBroker;
 import com.just.networking.impl.tcp.TCPConnection;
-import com.just.networking.impl.tcp.TCPConnectionBroker;
 
 public class TCPClient implements AutoCloseable {
 
     private volatile TCPConnection connection;
 
-    private final ConnectionBroker<TCPConnection, SocketAddress> connectionBroker;
+    private final ClientConnectionBroker<TCPConnection, SocketAddress> clientConnectionBroker;
 
     public TCPClient() {
-        this(new TCPConnectionBroker());
+        this(new TCPClientConnectionBroker());
     }
 
-    public TCPClient(TCPConnectionBroker broker) {
-        this.connectionBroker = broker;
+    public TCPClient(TCPClientConnectionBroker broker) {
+        this.clientConnectionBroker = broker;
     }
 
     @Override
@@ -35,7 +34,7 @@ public class TCPClient implements AutoCloseable {
         disconnect();
 
         // Attempt to make a new connection.
-        var result = connectionBroker.connect(new InetSocketAddress(host, port));
+        var result = clientConnectionBroker.connect(new InetSocketAddress(host, port));
 
         // if the connection attempt succeeded, store the connection.
         result.ifOk(connection -> this.connection = connection);
