@@ -6,6 +6,8 @@ import java.nio.ByteOrder;
 import java.nio.channels.ClosedChannelException;
 import java.util.function.Function;
 
+import com.just.networking.config.frame.TCPFrameConfig;
+
 public class TCPFrameReadChannel implements AutoCloseable {
 
     private final Function<ByteBuffer, Integer> reader;
@@ -21,7 +23,7 @@ public class TCPFrameReadChannel implements AutoCloseable {
     // -1 => need to read length next
     private int pendingLen = -1;
 
-    public TCPFrameReadChannel(Function<ByteBuffer, Integer> reader) {
+    public TCPFrameReadChannel(TCPFrameConfig tcpFrameConfig, Function<ByteBuffer, Integer> reader) {
         this.reader = reader;
         this.receiverBuffer = ByteBuffer.allocateDirect(256 * 1024).order(ByteOrder.BIG_ENDIAN);
 

@@ -8,6 +8,7 @@ import java.nio.ByteBuffer;
 import java.util.Map;
 
 import com.just.networking.Connection;
+import com.just.networking.config.message.TCPMessageConfig;
 import com.just.networking.impl.frame.TCPFrameConnection;
 
 public class TCPMessageConnection implements Connection<TCPMessageTransport> {
@@ -17,12 +18,18 @@ public class TCPMessageConnection implements Connection<TCPMessageTransport> {
     private final TCPMessageTransport tcpMessageTransport;
 
     public TCPMessageConnection(
+        TCPMessageConfig tcpMessageConfig,
         StreamCodecSchema<ByteBuffer> schema,
         Map<Short, StreamCodec<? extends Message<?>>> streamCodecs,
         TCPFrameConnection tcpFrameConnection
     ) {
         this.tcpFrameConnection = tcpFrameConnection;
-        this.tcpMessageTransport = new TCPMessageTransport(schema, streamCodecs, tcpFrameConnection.transport());
+        this.tcpMessageTransport = new TCPMessageTransport(
+            tcpMessageConfig,
+            schema,
+            streamCodecs,
+            tcpFrameConnection.transport()
+        );
     }
 
     @Override

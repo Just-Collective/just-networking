@@ -6,8 +6,10 @@ import com.bvanseg.just.serialization.codec.stream.schema.impl.ByteBufferStreamC
 import java.io.IOException;
 import java.util.Map;
 
+import com.just.networking.config.message.TCPMessageConfig;
 import com.just.networking.impl.message.Message;
 import com.just.networking.impl.message.client.TCPMessageClient;
+import com.just.networking.impl.message.server.TCPMessageReadLoop;
 import com.just.networking.impl.message.server.TCPMessageServer;
 import com.just.networking.message.ChatMessage;
 import com.just.networking.message.EchoMessage;
@@ -28,9 +30,11 @@ public class TCPClientTest {
         );
 
         // Bootstrap server components.
-        var tcpMessageServer = new TCPMessageServer(schema, map);
+        var tcpServerConfig = TCPMessageConfig.DEFAULT;
+        var tcpMessageServer = new TCPMessageServer(tcpServerConfig, schema, map);
+        var tcpMessageServerConnection = tcpMessageServer.bind(host, port);
         // Start the server.
-        tcpMessageServer.start(host, port, MessageReadLoopHandlerImpl::new);
+        tcpMessageServerConnection.listen(new TCPMessageReadLoop<>(schema, map), MessageReadLoopHandlerImpl::new);
 
         // Bootstrap client.
         var msgClient = new TCPMessageClient(schema, map);
@@ -50,15 +54,17 @@ public class TCPClientTest {
 
         // Sleep for 1 second to give the server a moment to ingest all the messages.
         Thread.sleep(1000);
+
         // Close the client first before closing the server.
-        connectionResult.ifOk(connection -> {
+        connectionResult.ifOk(tcpMessageConnection -> {
             try {
-                connection.close();
+                tcpMessageConnection.close();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         });
-        tcpMessageServer.close();
+
+        tcpMessageServerConnection.close();
     }
 
 }

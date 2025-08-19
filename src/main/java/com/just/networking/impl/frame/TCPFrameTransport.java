@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import com.just.networking.Transport;
+import com.just.networking.config.frame.TCPFrameConfig;
 import com.just.networking.impl.frame.channel.TCPFrameChannel;
 import com.just.networking.impl.tcp.TCPTransport;
 
@@ -13,9 +14,9 @@ public class TCPFrameTransport implements Transport {
 
     private final TCPFrameChannel tcpFrameChannel;
 
-    public TCPFrameTransport(TCPTransport tcpTransport) {
+    public TCPFrameTransport(TCPFrameConfig tcpFrameConfig, TCPTransport tcpTransport) {
         this.tcpTransport = tcpTransport;
-        this.tcpFrameChannel = new TCPFrameChannel(byteBuffer -> {
+        this.tcpFrameChannel = new TCPFrameChannel(tcpFrameConfig, byteBuffer -> {
             try {
                 return tcpTransport.read(byteBuffer);
             } catch (IOException e) {

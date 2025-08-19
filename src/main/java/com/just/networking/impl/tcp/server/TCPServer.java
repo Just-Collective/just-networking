@@ -2,63 +2,34 @@ package com.just.networking.impl.tcp.server;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.concurrent.Executors;
-import java.util.function.Function;
-import java.util.function.Supplier;
+import java.net.SocketAddress;
+import java.net.StandardSocketOptions;
+import java.nio.channels.ServerSocketChannel;
 
-import com.just.networking.Connection;
-import com.just.networking.impl.tcp.TCPConnection;
-import com.just.networking.server.ReadLoop;
+import com.just.networking.config.tcp.TCPConfig;
 
-public class TCPServer<C extends Connection<?>> implements AutoCloseable {
+public class TCPServer {
 
-    private TCPServerConnection tcpServerConnection;
+    private final TCPConfig tcpConfig;
 
-    private final TCPServerBindBroker tcpBindBroker;
-
-    private final Function<TCPConnection, C> connectionPromotionFactory;
-
-    public TCPServer(TCPServerBindBroker tcpBindBroker, Function<TCPConnection, C> connectionPromotionFactory) {
-        this.tcpBindBroker = tcpBindBroker;
-        this.connectionPromotionFactory = connectionPromotionFactory;
+    public TCPServer() {
+        this(TCPConfig.DEFAULT);
     }
 
-    public <H> void start(
-        String host,
-        int port,
-        ReadLoop<C, H> loop,
-        Supplier<? extends H> handlerSupplier
-    ) throws IOException {
-        this.tcpServerConnection = tcpBindBroker.bind(new InetSocketAddress(host, port));
-
-        Thread.ofPlatform().name("tcp-accept").start(() -> {
-            // Use virtual threads -> clean blocking code + scalable
-            var executorService = Executors.newVirtualThreadPerTaskExecutor();
-
-            try (executorService) {
-                while (tcpServerConnection != null && tcpServerConnection.isOpen()) {
-                    var connection = tcpServerConnection.accept();
-
-                    executorService.submit(
-                        () -> loop.run(connectionPromotionFactory.apply(connection), handlerSupplier.get())
-                    );
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
+    public TCPServer(TCPConfig tcpConfig) {
+        this.tcpConfig = tcpConfig;
     }
 
-    @Override
-    public void close() throws IOException {
-        var tcpsc = tcpServerConnection;
+    public TCPServerConnection bind(String host, int port) throws IOException {
+        return bind(new InetSocketAddress(host, port));
+    }
 
-        if (tcpsc != null) {
-            if (tcpsc.isOpen()) {
-                tcpsc.close();
-            }
+    public TCPServerConnection bind(SocketAddress socketAddress) throws IOException {
+        var serverSocketChannel = ServerSocketChannel.open();
+        serverSocketChannel.configureBlocking(true);
+        serverSocketChannel.setOption(StandardSocketOptions.SO_REUSEADDR, true);
+        serverSocketChannel.bind(socketAddress);
 
-            this.tcpServerConnection = null;
-        }
+        return new TCPServerConnection(serverSocketChannel);
     }
 }

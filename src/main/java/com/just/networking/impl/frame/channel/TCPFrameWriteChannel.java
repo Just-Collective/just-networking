@@ -5,6 +5,8 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.function.Function;
 
+import com.just.networking.config.frame.TCPFrameConfig;
+
 public class TCPFrameWriteChannel implements AutoCloseable {
 
     private final Function<ByteBuffer, Integer> writer;
@@ -13,7 +15,7 @@ public class TCPFrameWriteChannel implements AutoCloseable {
     // Tune size; 4–16 MiB works well. Must be >= largest single frame + 4.
     private final ByteBuffer staging;
 
-    public TCPFrameWriteChannel(Function<ByteBuffer, Integer> writer) {
+    public TCPFrameWriteChannel(TCPFrameConfig tcpFrameConfig, Function<ByteBuffer, Integer> writer) {
         this.writer = writer;
         this.staging = ByteBuffer.allocateDirect(4 * 1024 * 1024).order(ByteOrder.BIG_ENDIAN);
     }

@@ -40,7 +40,7 @@ public class ClientBootstrapper {
         var start = System.currentTimeMillis();
         var transport = connection.transport();
 
-        for (var i = 0; i < 1_000; i++) {
+        for (var i = 0; i < 100; i++) {
             transport.sendMessage(new ChatMessage("Hello, world!"));
         }
 

@@ -4,15 +4,21 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.function.Function;
 
+import com.just.networking.config.frame.TCPFrameConfig;
+
 public class TCPFrameChannel implements AutoCloseable {
 
     private final TCPFrameReadChannel tcpFrameReadChannel;
 
     private final TCPFrameWriteChannel tcpFrameWriteChannel;
 
-    public TCPFrameChannel(Function<ByteBuffer, Integer> reader, Function<ByteBuffer, Integer> writer) {
-        this.tcpFrameReadChannel = new TCPFrameReadChannel(reader);
-        this.tcpFrameWriteChannel = new TCPFrameWriteChannel(writer);
+    public TCPFrameChannel(
+        TCPFrameConfig tcpFrameConfig,
+        Function<ByteBuffer, Integer> reader,
+        Function<ByteBuffer, Integer> writer
+    ) {
+        this.tcpFrameReadChannel = new TCPFrameReadChannel(tcpFrameConfig, reader);
+        this.tcpFrameWriteChannel = new TCPFrameWriteChannel(tcpFrameConfig, writer);
     }
 
     @Override

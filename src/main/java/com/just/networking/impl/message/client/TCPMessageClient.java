@@ -8,12 +8,15 @@ import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.util.Map;
 
+import com.just.networking.config.message.TCPMessageConfig;
 import com.just.networking.impl.frame.client.TCPFrameClient;
 import com.just.networking.impl.message.Message;
 import com.just.networking.impl.message.TCPMessageConnection;
-import com.just.networking.impl.tcp.client.TCPClientConnectionBroker;
+import com.just.networking.impl.tcp.client.TCPClient;
 
 public class TCPMessageClient {
+
+    private final TCPMessageConfig tcpMessageConfig;
 
     private final Map<Short, StreamCodec<? extends Message<?>>> streamCodecs;
 
@@ -25,20 +28,30 @@ public class TCPMessageClient {
         StreamCodecSchema<ByteBuffer> schema,
         Map<Short, StreamCodec<? extends Message<?>>> streamCodecs
     ) {
-        this(schema, streamCodecs, new TCPFrameClient());
+        this(TCPMessageConfig.DEFAULT, schema, streamCodecs, new TCPFrameClient(TCPMessageConfig.DEFAULT.frame()));
     }
 
     public TCPMessageClient(
+        TCPMessageConfig tcpMessageConfig,
+        StreamCodecSchema<ByteBuffer> schema,
+        Map<Short, StreamCodec<? extends Message<?>>> streamCodecs
+    ) {
+        this(tcpMessageConfig, schema, streamCodecs, new TCPFrameClient(tcpMessageConfig.frame()));
+    }
+
+    public TCPMessageClient(
+        TCPMessageConfig tcpMessageConfig,
         StreamCodecSchema<ByteBuffer> schema,
         Map<Short, StreamCodec<? extends Message<?>>> streamCodecs,
         TCPFrameClient tcpFrameClient
     ) {
+        this.tcpMessageConfig = tcpMessageConfig;
         this.streamCodecs = streamCodecs;
         this.schema = schema;
         this.tcpFrameClient = tcpFrameClient;
     }
 
-    public Result<TCPMessageConnection, TCPClientConnectionBroker.ConnectFailure<SocketAddress>> connect(
+    public Result<TCPMessageConnection, TCPClient.ConnectFailure<SocketAddress>> connect(
         String host,
         int port
     ) {
@@ -46,7 +59,7 @@ public class TCPMessageClient {
 
         if (result.isOk()) {
             // Promote the connection to a TCPMessageConnection type.
-            return Result.ok(new TCPMessageConnection(schema, streamCodecs, result.unwrap()));
+            return Result.ok(new TCPMessageConnection(tcpMessageConfig, schema, streamCodecs, result.unwrap()));
         }
 
         return Result.err(result.unwrapErr());

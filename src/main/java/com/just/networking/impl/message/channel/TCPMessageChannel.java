@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import com.just.networking.config.message.TCPMessageConfig;
 import com.just.networking.impl.message.Message;
 
 public class TCPMessageChannel implements AutoCloseable {
@@ -33,6 +34,7 @@ public class TCPMessageChannel implements AutoCloseable {
     private final ByteBuffer scratchBuffer;
 
     public TCPMessageChannel(
+        TCPMessageConfig tcpMessageConfig,
         StreamCodecSchema<ByteBuffer> schema,
         Map<Short, StreamCodec<? extends Message<?>>> streamCodecs,
         Supplier<ByteBuffer> frameReader,
