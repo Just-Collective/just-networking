@@ -1,6 +1,5 @@
 package com.just.networking.impl.tcp.server;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
@@ -20,7 +19,7 @@ public final class TCPByteReadLoop<C extends TCPConnection> implements ReadLoop<
     }
 
     @Override
-    public void run(C connection, ByteReadLoopHandler<C> handler) throws IOException {
+    public void run(C connection, ByteReadLoopHandler<C> handler) {
         handler.onConnect(connection);
 
         var buf = ByteBuffer.allocateDirect(bufferSize).order(ByteOrder.BIG_ENDIAN);

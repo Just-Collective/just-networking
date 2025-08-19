@@ -39,13 +39,9 @@ public class TCPServer<C extends Connection<?>> implements AutoCloseable {
                 while (tcpServerConnection != null && tcpServerConnection.isOpen()) {
                     var connection = tcpServerConnection.accept();
 
-                    executorService.submit(() -> {
-                        try {
-                            loop.run(connectionPromotionFactory.apply(connection), handlerSupplier.get());
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    });
+                    executorService.submit(
+                        () -> loop.run(connectionPromotionFactory.apply(connection), handlerSupplier.get())
+                    );
                 }
             } catch (IOException e) {
                 e.printStackTrace();
