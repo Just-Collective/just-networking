@@ -1,13 +1,16 @@
-package com.just.networking.impl.message;
+package com.just.networking.impl.message.channel;
 
 import com.bvanseg.just.serialization.codec.stream.StreamCodec;
 import com.bvanseg.just.serialization.codec.stream.schema.StreamCodecSchema;
+import org.jetbrains.annotations.Nullable;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+
+import com.just.networking.impl.message.Message;
 
 public class TCPMessageChannel implements AutoCloseable {
 
@@ -64,7 +67,7 @@ public class TCPMessageChannel implements AutoCloseable {
         frameWriter.accept(scratchBuffer);
     }
 
-    public Message<?> pollMessage() {
+    public @Nullable Message<?> pollMessage() {
         var frame = frameReader.get();
 
         if (frame == null) {

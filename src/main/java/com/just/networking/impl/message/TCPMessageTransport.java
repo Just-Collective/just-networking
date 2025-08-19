@@ -2,6 +2,7 @@ package com.just.networking.impl.message;
 
 import com.bvanseg.just.serialization.codec.stream.StreamCodec;
 import com.bvanseg.just.serialization.codec.stream.schema.StreamCodecSchema;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -9,6 +10,7 @@ import java.util.Map;
 
 import com.just.networking.Transport;
 import com.just.networking.impl.frame.TCPFrameTransport;
+import com.just.networking.impl.message.channel.TCPMessageChannel;
 
 public class TCPMessageTransport implements Transport {
 
@@ -51,7 +53,7 @@ public class TCPMessageTransport implements Transport {
         tcpMessageChannel.sendMessage(message);
     }
 
-    public Message<?> pollMessage() {
+    public @Nullable Message<?> pollMessage() {
         return tcpMessageChannel.pollMessage();
     }
 

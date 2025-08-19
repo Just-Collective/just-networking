@@ -55,10 +55,10 @@ public class ClientBootstrapper {
 
         Thread.startVirtualThread(() -> {
             while (transport.isOpen()) {
-                var m = transport.pollMessage();
+                var pollMessage = transport.pollMessage();
 
-                if (m != null) {
-                    switch (m) {
+                if (pollMessage != null) {
+                    switch (pollMessage) {
                         case ChatMessage(String message) -> System.out.println("[SERVER] " + message);
                         case EchoMessage(String message) -> System.out.println("[SERVER] Echo: " + message);
                         case PingMessage(long epochMillis) -> {
