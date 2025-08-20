@@ -1,4 +1,4 @@
-package com.just.networking;
+package com.just.networking.message;
 
 import com.bvanseg.just.serialization.codec.stream.StreamCodec;
 import com.bvanseg.just.serialization.codec.stream.schema.impl.ByteBufferStreamCodecSchema;
@@ -11,11 +11,8 @@ import com.just.networking.impl.message.Message;
 import com.just.networking.impl.message.client.TCPMessageClient;
 import com.just.networking.impl.message.server.TCPMessageReadLoop;
 import com.just.networking.impl.message.server.TCPMessageServer;
-import com.just.networking.message.ChatMessage;
-import com.just.networking.message.EchoMessage;
-import com.just.networking.message.PingMessage;
 
-public class TCPClientTest {
+public class TCPMessageClientTest {
 
     public static void main(String[] args) throws IOException, InterruptedException {
         var host = "localhost";
@@ -43,10 +40,10 @@ public class TCPClientTest {
 
         // Use client.
         connectionResult.ifOk(connection -> {
-            ClientBootstrapper.startClientReader(connection);
+            MessageClientBootstrapper.startClientReader(connection);
 
             try {
-                ClientBootstrapper.runClientMessageInputLoop(connection);
+                MessageClientBootstrapper.runClientMessageInputLoop(connection);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

@@ -1,13 +1,10 @@
-package com.just.networking;
+package com.just.networking.message;
 
 import java.io.IOException;
 
 import com.just.networking.impl.message.Message;
 import com.just.networking.impl.message.TCPMessageConnection;
 import com.just.networking.impl.message.server.MessageReadLoopHandler;
-import com.just.networking.message.ChatMessage;
-import com.just.networking.message.EchoMessage;
-import com.just.networking.message.PingMessage;
 
 public class MessageReadLoopHandlerImpl implements MessageReadLoopHandler<TCPMessageConnection> {
 
@@ -54,8 +51,6 @@ public class MessageReadLoopHandlerImpl implements MessageReadLoopHandler<TCPMes
 
         switch (m) {
             case ChatMessage(String message) -> {
-                connection.transport().sendMessage(m);
-
                 try {
                     connection.transport().flushWrites();
                 } catch (IOException e) {

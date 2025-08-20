@@ -1,15 +1,12 @@
-package com.just.networking;
+package com.just.networking.message;
 
 import java.io.IOException;
 import java.util.Objects;
 import java.util.Scanner;
 
 import com.just.networking.impl.message.TCPMessageConnection;
-import com.just.networking.message.ChatMessage;
-import com.just.networking.message.EchoMessage;
-import com.just.networking.message.PingMessage;
 
-public class ClientBootstrapper {
+public class MessageClientBootstrapper {
 
     public static void runClientMessageInputLoop(TCPMessageConnection connection) throws IOException {
         var scanner = new Scanner(System.in);
@@ -40,7 +37,7 @@ public class ClientBootstrapper {
         var start = System.currentTimeMillis();
         var transport = connection.transport();
 
-        for (var i = 0; i < 100; i++) {
+        for (var i = 0; i < 1_000_000; i++) {
             transport.sendMessage(new ChatMessage("Hello, world!"));
         }
 
