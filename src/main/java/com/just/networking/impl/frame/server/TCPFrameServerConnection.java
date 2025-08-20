@@ -34,7 +34,7 @@ public final class TCPFrameServerConnection implements ServerConnection<TCPFrame
         tcpServerConnection.close();
     }
 
-    public <H extends FrameReadLoopHandler<TCPFrameConnection>> Thread loop(Supplier<? extends H> handlerSupplier) {
+    public <H extends FrameReadLoopHandler<TCPFrameConnection>> Thread listen(Supplier<? extends H> handlerSupplier) {
         return listen(new TCPFrameReadLoop<>(), handlerSupplier);
     }
 }

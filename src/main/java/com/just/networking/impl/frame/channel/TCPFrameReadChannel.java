@@ -17,7 +17,6 @@ public class TCPFrameReadChannel implements AutoCloseable {
     private ByteBuffer oversized;
 
     // One reusable direct buffer that we read into and peel frames from.
-    // Start at 256 KiB; tune as needed.
     private final ByteBuffer receiverBuffer;
 
     // -1 => need to read length next
