@@ -5,8 +5,9 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
 import com.just.networking.Transport;
+import com.just.networking.Writer;
 
-public class TCPTransport implements Transport {
+public class TCPTransport implements Transport, Writer {
 
     private final SocketChannel socketChannel;
 
@@ -23,8 +24,14 @@ public class TCPTransport implements Transport {
         return socketChannel.read(dst);
     }
 
+    @Override
     public int write(ByteBuffer src) throws IOException {
         return socketChannel.write(src);
+    }
+
+    @Override
+    public long write(ByteBuffer[] srcs) throws IOException {
+        return socketChannel.write(srcs);
     }
 
     @Override
