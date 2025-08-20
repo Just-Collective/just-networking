@@ -3,19 +3,20 @@ package com.just.networking.impl.frame.channel;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.function.Function;
+import java.nio.channels.ClosedChannelException;
+import java.util.concurrent.locks.LockSupport;
 
+import com.just.networking.Writer;
 import com.just.networking.config.frame.TCPFrameConfig;
 
 public class TCPFrameWriteChannel implements AutoCloseable {
 
-    private final Function<ByteBuffer, Integer> writer;
+    private final Writer writer;
 
-    // A big direct staging buffer we pack many frames into before a write().
-    // Tune size; 4–16 MiB works well. Must be >= largest single frame + 4.
+    // A big direct staging buffer we pack many frames into before a write(). Must be >= largest single frame + 4.
     private final ByteBuffer staging;
 
-    public TCPFrameWriteChannel(TCPFrameConfig tcpFrameConfig, Function<ByteBuffer, Integer> writer) {
+    public TCPFrameWriteChannel(TCPFrameConfig tcpFrameConfig, Writer writer) {
         this.writer = writer;
         this.staging = ByteBuffer.allocateDirect(4 * 1024 * 1024).order(ByteOrder.BIG_ENDIAN);
     }
@@ -26,65 +27,96 @@ public class TCPFrameWriteChannel implements AutoCloseable {
     }
 
     public void sendFrame(ByteBuffer payload) throws IOException {
-        // Work on a duplicate so we don't change caller's position/limit.
-        var src = payload.duplicate();
-        var len = src.remaining();
-        var needed = TCPFrameChannelConstants.LEN_BYTES + len;
+        final var srcPosition = payload.position();
+        final var srcLimit = payload.limit();
+        final var length = srcLimit - srcPosition;
 
-        if (needed <= staging.capacity()) {
-            // Normal case: write the entire frame atomically into staging.
-            ensureFreeSpace(needed);
-            staging.putInt(len);
-            staging.put(src); // copies all bytes, does NOT touch 'payload'
-        } else {
-            // Rare: frame is larger than staging. Stream it across multiple flushes.
-            // Write header first (may flush in between).
-            putIntWithAutoFlush(len);
+        // ---- Large-frame fast path (no staging copy, single syscall) ----
+        if (length >= staging.capacity()) {
+            writeOutDirectly(payload, length);
+            // Restore caller view
+            payload.position(srcPosition);
+            payload.limit(srcLimit);
+            return;
+        }
 
-            // Then copy payload in chunks.
-            while (src.hasRemaining()) {
-                if (staging.remaining() == 0) {
-                    flushBlocking();
-                }
+        // ---- Large frame path: STREAM VIA STAGING ----
+        // Write the 4-byte header into staging, flushing if needed.
+        writeToStaging(payload, length, srcPosition);
 
-                var toCopy = Math.min(staging.remaining(), src.remaining());
-                var oldLimit = src.limit();
-                src.limit(src.position() + toCopy);
-                staging.put(src);
-                src.limit(oldLimit);
+        // Restore caller view
+        payload.limit(srcLimit);
+        payload.position(srcPosition);
+    }
+
+    private void writeToStaging(ByteBuffer payload, int length, int srcPosition) throws IOException {
+        writeHeaderToStaging(length);
+
+        var currentPosition = srcPosition;
+        var remaining = length;
+
+        while (remaining > 0) {
+            if (staging.remaining() == 0) {
+                flushStagingBlocking();
+            }
+
+            var toCopy = staging.remaining();
+
+            if (toCopy > remaining) {
+                toCopy = remaining;
+            }
+
+            payload.limit(currentPosition + toCopy).position(currentPosition);
+            staging.put(payload);
+
+            currentPosition += toCopy;
+            remaining -= toCopy;
+        }
+    }
+
+    private void writeOutDirectly(ByteBuffer payload, int length) throws IOException {
+        // Flush whatever we’ve batched so far.
+        flushStagingBlocking();
+
+        // Prepare header (4 bytes, BE)
+        var hdr = ByteBuffer.allocateDirect(TCPFrameChannelConstants.LEN_BYTES).order(ByteOrder.BIG_ENDIAN);
+        hdr.putInt(length).flip();
+
+        // Duplicate payload so we don't mutate caller's buffer
+        var body = payload.duplicate();
+
+        // One syscall via gathering write; handle partial writes
+        ByteBuffer[] vec = { hdr, body };
+
+        while (hdr.hasRemaining() || body.hasRemaining()) {
+            var numberOfBytesWritten = writer.write(vec);
+
+            if (numberOfBytesWritten < 0) {
+                throw new ClosedChannelException();
+            }
+
+            if (numberOfBytesWritten == 0) {
+                // tiny backoff if non-blocking
+                LockSupport.parkNanos(1_000_000L);
             }
         }
     }
 
     /** Flushes whatever is in staging to the socket (blocking until fully written). */
     public void flushWrites() throws IOException {
-        flushBlocking();
+        flushStagingBlocking();
     }
 
-    private void ensureFreeSpace(int needed) throws IOException {
-        // If the whole frame fits into staging, flush until we have room for it.
-        // If 'needed' is larger than capacity, the caller will stream it piecewise.
-        if (needed > staging.capacity()) {
-            return;
+    private void writeHeaderToStaging(int len) throws IOException {
+        // Ensure we have 4 bytes available, then write the length in one shot.
+        if (staging.remaining() < TCPFrameChannelConstants.LEN_BYTES) {
+            flushStagingBlocking();
         }
 
-        while (staging.remaining() < needed) {
-            flushBlocking();
-        }
+        staging.putInt(len);
     }
 
-    private void putIntWithAutoFlush(int v) throws IOException {
-        // We may need up to 4 bytes; write piecemeal if staging is nearly full.
-        for (var shift = 24; shift >= 0; shift -= 8) {
-            if (staging.remaining() == 0) {
-                flushBlocking();
-            }
-
-            staging.put((byte) ((v >>> shift) & 0xFF));
-        }
-    }
-
-    private void flushBlocking() throws IOException {
+    private void flushStagingBlocking() throws IOException {
         if (staging.position() == 0) {
             // nothing to send.
             return;
@@ -93,10 +125,10 @@ public class TCPFrameWriteChannel implements AutoCloseable {
         staging.flip();
 
         while (staging.hasRemaining()) {
-            var n = writer.apply(staging);
+            var n = writer.write(staging);
 
             if (n < 0) {
-                throw new java.nio.channels.ClosedChannelException();
+                throw new ClosedChannelException();
             }
 
             if (n == 0) {

@@ -22,13 +22,7 @@ public class TCPFrameTransport implements Transport {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-        }, byteBuffer -> {
-            try {
-                return tcpTransport.write(byteBuffer);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        }, tcpTransport);
     }
 
     @Override
