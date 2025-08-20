@@ -4,25 +4,30 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.ClosedChannelException;
-import java.util.concurrent.locks.LockSupport;
 
 import com.just.networking.Writer;
 import com.just.networking.config.frame.TCPFrameConfig;
 
 public class TCPFrameWriteChannel implements AutoCloseable {
 
-    private final Writer writer;
+    // Reusable 4B header buffer (big-endian). One allocation total; reused per frame.
+    private final ByteBuffer header;
 
     // A big direct staging buffer we pack many frames into before a write(). Must be >= largest single frame + 4.
     private final ByteBuffer staging;
 
+    private final Writer writer;
+
     public TCPFrameWriteChannel(TCPFrameConfig tcpFrameConfig, Writer writer) {
-        this.writer = writer;
+        this.header = ByteBuffer.allocateDirect(TCPFrameChannelConstants.LEN_BYTES)
+                .order(ByteOrder.BIG_ENDIAN);
         this.staging = ByteBuffer.allocateDirect(4 * 1024 * 1024).order(ByteOrder.BIG_ENDIAN);
+        this.writer = writer;
     }
 
     @Override
     public void close() {
+        header.clear();
         staging.clear();
     }
 
@@ -78,17 +83,17 @@ public class TCPFrameWriteChannel implements AutoCloseable {
         // Flush whatever we’ve batched so far.
         flushStagingBlocking();
 
-        // Prepare header (4 bytes, BE)
-        var hdr = ByteBuffer.allocateDirect(TCPFrameChannelConstants.LEN_BYTES).order(ByteOrder.BIG_ENDIAN);
-        hdr.putInt(length).flip();
+        // Prepare reusable header (4 bytes, BE)
+        header.clear();
+        header.putInt(length).flip();
 
         // Duplicate payload so we don't mutate caller's buffer
         var body = payload.duplicate();
 
         // One syscall via gathering write; handle partial writes
-        ByteBuffer[] vec = { hdr, body };
+        ByteBuffer[] vec = { header, body };
 
-        while (hdr.hasRemaining() || body.hasRemaining()) {
+        while (header.hasRemaining() || body.hasRemaining()) {
             var numberOfBytesWritten = writer.write(vec);
 
             if (numberOfBytesWritten < 0) {
@@ -97,7 +102,7 @@ public class TCPFrameWriteChannel implements AutoCloseable {
 
             if (numberOfBytesWritten == 0) {
                 // tiny backoff if non-blocking
-                LockSupport.parkNanos(1_000_000L);
+                Thread.onSpinWait();
             }
         }
     }
