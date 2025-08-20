@@ -38,6 +38,11 @@ public class TCPFrameTransport implements Transport {
         tcpFrameChannel.sendFrame(payload);
     }
 
+    public void sendFrameAndFlush(ByteBuffer payload) throws IOException {
+        sendFrame(payload);
+        flushWrites();
+    }
+
     public void flushWrites() throws IOException {
         tcpFrameChannel.flushWrites();
     }
