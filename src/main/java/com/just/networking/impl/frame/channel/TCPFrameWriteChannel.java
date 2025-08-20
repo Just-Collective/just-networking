@@ -16,12 +16,16 @@ public class TCPFrameWriteChannel implements AutoCloseable {
     // A big direct staging buffer we pack many frames into before a write(). Must be >= largest single frame + 4.
     private final ByteBuffer staging;
 
+    // Reused array for gathering writes (header and body).
+    private final ByteBuffer[] vec;
+
     private final Writer writer;
 
     public TCPFrameWriteChannel(TCPFrameConfig tcpFrameConfig, Writer writer) {
         this.header = ByteBuffer.allocateDirect(TCPFrameChannelConstants.LEN_BYTES)
-                .order(ByteOrder.BIG_ENDIAN);
+            .order(ByteOrder.BIG_ENDIAN);
         this.staging = ByteBuffer.allocateDirect(4 * 1024 * 1024).order(ByteOrder.BIG_ENDIAN);
+        this.vec = new ByteBuffer[2];
         this.writer = writer;
     }
 
@@ -29,6 +33,8 @@ public class TCPFrameWriteChannel implements AutoCloseable {
     public void close() {
         header.clear();
         staging.clear();
+        this.vec[0] = null;
+        this.vec[1] = null;
     }
 
     public void sendFrame(ByteBuffer payload) throws IOException {
@@ -90,8 +96,9 @@ public class TCPFrameWriteChannel implements AutoCloseable {
         // Duplicate payload so we don't mutate caller's buffer
         var body = payload.duplicate();
 
-        // One syscall via gathering write; handle partial writes
-        ByteBuffer[] vec = { header, body };
+        // Reuse the same array each call (no per-call allocation)
+        this.vec[0] = header;
+        this.vec[1] = body;
 
         while (header.hasRemaining() || body.hasRemaining()) {
             var numberOfBytesWritten = writer.write(vec);
