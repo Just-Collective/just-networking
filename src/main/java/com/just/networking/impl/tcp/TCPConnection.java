@@ -1,5 +1,7 @@
 package com.just.networking.impl.tcp;
 
+import com.bvanseg.just.functional.result.Result;
+
 import java.io.IOException;
 import java.nio.channels.SocketChannel;
 
@@ -19,7 +21,7 @@ public class TCPConnection implements Connection<TCPTransport> {
     }
 
     @Override
-    public void close() throws IOException {
-        transport.close();
+    public Result<Void, IOException> closeWithResult() {
+        return transport.closeWithResult();
     }
 }

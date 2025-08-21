@@ -1,10 +1,6 @@
 package com.just.networking;
 
-import java.io.IOException;
-
-public interface Transport {
+public interface Transport extends SafeAutoCloseable {
 
     boolean isOpen();
-
-    void close() throws IOException;
 }

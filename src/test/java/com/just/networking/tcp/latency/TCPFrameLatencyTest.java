@@ -5,6 +5,7 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
+import com.just.networking.SafeAutoCloseable;
 import com.just.networking.config.frame.TCPFrameConfig;
 import com.just.networking.impl.frame.client.TCPFrameClient;
 import com.just.networking.impl.frame.server.TCPFrameServer;
@@ -106,13 +107,7 @@ public class TCPFrameLatencyTest {
         }).start());
 
         done.await();
-        serverBindResult.ifOk(tcpFrameServerConnection -> {
-            try {
-                tcpFrameServerConnection.close();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        serverBindResult.ifOk(SafeAutoCloseable::close);
     }
 
     private static double nanosToMicros(long ns) {

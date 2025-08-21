@@ -1,5 +1,7 @@
 package com.just.networking.impl.tcp.server;
 
+import com.bvanseg.just.functional.result.Result;
+
 import java.io.IOException;
 import java.net.StandardSocketOptions;
 import java.nio.channels.ServerSocketChannel;
@@ -39,8 +41,8 @@ public final class TCPServerConnection implements ServerConnection<TCPConnection
     }
 
     @Override
-    public void close() throws IOException {
-        serverSocketChannel.close();
+    public Result<Void, IOException> closeWithResult() {
+        return Result.tryRun(serverSocketChannel::close);
     }
 
     public <H extends ByteReadLoopHandler<TCPConnection>> Thread listen(Supplier<? extends H> handlerSupplier) {

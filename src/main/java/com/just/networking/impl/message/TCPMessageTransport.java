@@ -1,5 +1,6 @@
 package com.just.networking.impl.message;
 
+import com.bvanseg.just.functional.result.Result;
 import com.bvanseg.just.serialization.codec.stream.StreamCodec;
 import com.bvanseg.just.serialization.codec.stream.schema.StreamCodecSchema;
 import org.jetbrains.annotations.Nullable;
@@ -68,7 +69,7 @@ public class TCPMessageTransport implements Transport {
     }
 
     @Override
-    public void close() throws IOException {
-        tcpFrameTransport.close();
+    public Result<Void, IOException> closeWithResult() {
+        return tcpFrameTransport.closeWithResult();
     }
 }

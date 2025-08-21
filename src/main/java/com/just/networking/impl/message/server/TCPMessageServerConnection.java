@@ -1,5 +1,6 @@
 package com.just.networking.impl.message.server;
 
+import com.bvanseg.just.functional.result.Result;
 import com.bvanseg.just.serialization.codec.stream.StreamCodec;
 import com.bvanseg.just.serialization.codec.stream.schema.StreamCodecSchema;
 
@@ -46,7 +47,7 @@ public final class TCPMessageServerConnection implements ServerConnection<TCPMes
     }
 
     @Override
-    public void close() throws IOException {
-        tcpFrameServerConnection.close();
+    public Result<Void, IOException> closeWithResult() {
+        return tcpFrameServerConnection.closeWithResult();
     }
 }

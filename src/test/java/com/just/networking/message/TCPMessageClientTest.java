@@ -6,6 +6,7 @@ import com.bvanseg.just.serialization.codec.stream.schema.impl.ByteBufferStreamC
 import java.io.IOException;
 import java.util.Map;
 
+import com.just.networking.SafeAutoCloseable;
 import com.just.networking.config.message.TCPMessageConfig;
 import com.just.networking.impl.message.Message;
 import com.just.networking.impl.message.client.TCPMessageClient;
@@ -56,21 +57,8 @@ public class TCPMessageClientTest {
         Thread.sleep(1000);
 
         // Close the client first before closing the server.
-        connectionResult.ifOk(tcpMessageConnection -> {
-            try {
-                tcpMessageConnection.close();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
-
-        serverBindResult.ifOk(tcpMessageServerConnection -> {
-            try {
-                tcpMessageServerConnection.close();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        connectionResult.ifOk(SafeAutoCloseable::close);
+        serverBindResult.ifOk(SafeAutoCloseable::close);
     }
 
 }

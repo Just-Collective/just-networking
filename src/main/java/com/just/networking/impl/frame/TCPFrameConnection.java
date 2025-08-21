@@ -1,5 +1,7 @@
 package com.just.networking.impl.frame;
 
+import com.bvanseg.just.functional.result.Result;
+
 import java.io.IOException;
 
 import com.just.networking.Connection;
@@ -23,7 +25,7 @@ public class TCPFrameConnection implements Connection<TCPFrameTransport> {
     }
 
     @Override
-    public void close() throws IOException {
-        tcpConnection.close();
+    public Result<Void, IOException> closeWithResult() {
+        return tcpConnection.closeWithResult();
     }
 }

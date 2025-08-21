@@ -1,5 +1,7 @@
 package com.just.networking.impl.frame;
 
+import com.bvanseg.just.functional.result.Result;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -48,7 +50,7 @@ public class TCPFrameTransport implements Transport {
     }
 
     @Override
-    public void close() throws IOException {
-        tcpTransport.close();
+    public Result<Void, IOException> closeWithResult() {
+        return tcpTransport.closeWithResult();
     }
 }

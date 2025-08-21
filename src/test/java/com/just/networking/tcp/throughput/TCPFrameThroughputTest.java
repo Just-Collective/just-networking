@@ -5,6 +5,7 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.LongAdder;
 
+import com.just.networking.SafeAutoCloseable;
 import com.just.networking.config.frame.TCPFrameConfig;
 import com.just.networking.impl.frame.client.TCPFrameClient;
 import com.just.networking.impl.frame.server.TCPFrameServer;
@@ -77,12 +78,6 @@ public class TCPFrameThroughputTest {
 
         System.out.printf("Server received %d MB%n", bytesReceived.longValue() / TCPTestConstants.MB_SIZE);
 
-        serverBindResult.ifOk(tcpFrameServerConnection -> {
-            try {
-                tcpFrameServerConnection.close();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        serverBindResult.ifOk(SafeAutoCloseable::close);
     }
 }

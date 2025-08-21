@@ -6,15 +6,13 @@ import java.util.concurrent.Executors;
 import java.util.function.Supplier;
 
 import com.just.networking.Connection;
+import com.just.networking.SafeAutoCloseable;
 
-public interface ServerConnection<C extends Connection<?>> extends AutoCloseable {
+public interface ServerConnection<C extends Connection<?>> extends SafeAutoCloseable {
 
     boolean isOpen();
 
     C accept() throws IOException;
-
-    @Override
-    void close() throws IOException;
 
     default <H> Thread listen(ReadLoop<C, H> readLoop, Supplier<? extends H> handlerSupplier) {
         return listen("client-accept", Executors.newVirtualThreadPerTaskExecutor(), readLoop, handlerSupplier);

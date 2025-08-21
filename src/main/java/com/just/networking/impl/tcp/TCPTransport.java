@@ -1,5 +1,7 @@
 package com.just.networking.impl.tcp;
 
+import com.bvanseg.just.functional.result.Result;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
@@ -35,7 +37,7 @@ public class TCPTransport implements Transport, Writer {
     }
 
     @Override
-    public void close() throws IOException {
-        socketChannel.close();
+    public Result<Void, IOException> closeWithResult() {
+        return Result.tryRun(socketChannel::close);
     }
 }

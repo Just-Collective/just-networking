@@ -1,5 +1,7 @@
 package com.just.networking.impl.frame.server;
 
+import com.bvanseg.just.functional.result.Result;
+
 import java.io.IOException;
 import java.util.function.Supplier;
 
@@ -30,8 +32,8 @@ public final class TCPFrameServerConnection implements ServerConnection<TCPFrame
     }
 
     @Override
-    public void close() throws IOException {
-        tcpServerConnection.close();
+    public Result<Void, IOException> closeWithResult() {
+        return tcpServerConnection.closeWithResult();
     }
 
     public <H extends FrameReadLoopHandler<TCPFrameConnection>> Thread listen(Supplier<? extends H> handlerSupplier) {

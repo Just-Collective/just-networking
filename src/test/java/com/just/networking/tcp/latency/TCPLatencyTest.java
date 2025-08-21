@@ -5,6 +5,7 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
+import com.just.networking.SafeAutoCloseable;
 import com.just.networking.impl.tcp.client.TCPClient;
 import com.just.networking.impl.tcp.server.TCPServer;
 import com.just.networking.tcp.TCPTestConstants;
@@ -106,13 +107,7 @@ public class TCPLatencyTest {
         }).start());
 
         latch.await();
-        serverBindResult.ifOk(tcpServerConnection -> {
-            try {
-                tcpServerConnection.close();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        serverBindResult.ifOk(SafeAutoCloseable::close);
     }
 
     private static void writeFully(com.just.networking.impl.tcp.TCPConnection conn, ByteBuffer buf) throws IOException {

@@ -5,6 +5,7 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicLong;
 
+import com.just.networking.SafeAutoCloseable;
 import com.just.networking.impl.tcp.client.TCPClient;
 import com.just.networking.impl.tcp.server.TCPServer;
 import com.just.networking.tcp.TCPTestConstants;
@@ -73,12 +74,6 @@ public class TCPThroughputTest {
 
         System.out.printf("Server received %d MB%n", bytesReceived.get() / TCPTestConstants.MB_SIZE);
 
-        serverBindResult.ifOk(tcpServerConnection -> {
-            try {
-                tcpServerConnection.close();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        serverBindResult.ifOk(SafeAutoCloseable::close);
     }
 }
