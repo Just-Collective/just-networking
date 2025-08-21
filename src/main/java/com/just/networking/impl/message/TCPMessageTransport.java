@@ -61,6 +61,9 @@ public class TCPMessageTransport implements Transport {
     }
 
     public void flushWrites() throws IOException {
+        // Flush messages to the frame channel.
+        tcpMessageChannel.flush();
+        // Flush frames to the tcp socket.
         tcpFrameTransport.flushWrites();
     }
 
