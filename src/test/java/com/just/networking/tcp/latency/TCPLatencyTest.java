@@ -20,20 +20,22 @@ public class TCPLatencyTest {
 
     public static void main(String[] args) throws Exception {
         var server = new TCPServer();
-        var serverConn = server.bind(TCPTestConstants.HOST, TCPTestConstants.PORT);
+        var serverBindResult = server.bind(TCPTestConstants.HOST, TCPTestConstants.PORT);
 
-        // Echo server: write back whatever we read.
-        serverConn.listen(() -> (connection, data) -> {
-            // Assumes 'data' is already in read mode with the frame/chunk contents.
-            // Echo back the same bytes (duplicate so we don't mutate the handler buffer).
-            var echo = data.duplicate();
-            try {
-                while (echo.hasRemaining()) {
-                    connection.transport().write(echo);
+        serverBindResult.ifOk(tcpServerConnection -> {
+            // Echo server: write back whatever we read.
+            tcpServerConnection.listen(() -> (connection, data) -> {
+                // Assumes 'data' is already in read mode with the frame/chunk contents.
+                // Echo back the same bytes (duplicate so we don't mutate the handler buffer).
+                var echo = data.duplicate();
+                try {
+                    while (echo.hasRemaining()) {
+                        connection.transport().write(echo);
+                    }
+                } catch (IOException e) {
+                    // swallow for test; server loop will close on error
                 }
-            } catch (IOException e) {
-                // swallow for test; server loop will close on error
-            }
+            });
         });
 
         var client = new TCPClient();
@@ -104,7 +106,13 @@ public class TCPLatencyTest {
         }).start());
 
         latch.await();
-        serverConn.close();
+        serverBindResult.ifOk(tcpServerConnection -> {
+            try {
+                tcpServerConnection.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     private static void writeFully(com.just.networking.impl.tcp.TCPConnection conn, ByteBuffer buf) throws IOException {

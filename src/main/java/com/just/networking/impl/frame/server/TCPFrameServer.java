@@ -1,13 +1,15 @@
 package com.just.networking.impl.frame.server;
 
+import com.bvanseg.just.functional.result.Result;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
 import com.just.networking.config.frame.TCPFrameConfig;
 import com.just.networking.impl.tcp.server.TCPServer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class TCPFrameServer {
 
@@ -30,16 +32,23 @@ public class TCPFrameServer {
         this.tcpServer = tcpServer;
     }
 
-    public TCPFrameServerConnection bind(String host, int port) throws IOException {
+    public Result<TCPFrameServerConnection, TCPServer.BindFailure<SocketAddress>> bind(
+        String host,
+        int port
+    ) throws IOException {
         return bind(new InetSocketAddress(host, port));
     }
 
-    public TCPFrameServerConnection bind(SocketAddress bindAddress) throws IOException {
-        var connection = tcpServer.bind(bindAddress);
+    public Result<TCPFrameServerConnection, TCPServer.BindFailure<SocketAddress>> bind(
+        SocketAddress bindAddress
+    ) throws IOException {
+        var result = tcpServer.bind(bindAddress);
 
         // Announce the upgrade from raw TCP to framed transport.
-        LOGGER.info("Upgraded TCP server at {} to framed transport (TCPFrameServerConnection).", bindAddress);
+        result.ifOk(
+            $ -> LOGGER.info("Upgraded TCP server at {} to framed transport (TCPFrameServerConnection).", bindAddress)
+        );
 
-        return new TCPFrameServerConnection(tcpFrameConfig, connection);
+        return result.map(connection -> new TCPFrameServerConnection(tcpFrameConfig, connection));
     }
 }

@@ -1,7 +1,10 @@
 package com.just.networking.impl.message.server;
 
+import com.bvanseg.just.functional.result.Result;
 import com.bvanseg.just.serialization.codec.stream.StreamCodec;
 import com.bvanseg.just.serialization.codec.stream.schema.StreamCodecSchema;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -12,8 +15,7 @@ import java.util.Map;
 import com.just.networking.config.message.TCPMessageConfig;
 import com.just.networking.impl.frame.server.TCPFrameServer;
 import com.just.networking.impl.message.Message;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.just.networking.impl.tcp.server.TCPServer;
 
 public class TCPMessageServer {
 
@@ -62,16 +64,28 @@ public class TCPMessageServer {
         this.tcpFrameServer = tcpFrameServer;
     }
 
-    public TCPMessageServerConnection bind(String host, int port) throws IOException {
+    public Result<TCPMessageServerConnection, TCPServer.BindFailure<SocketAddress>> bind(
+        String host,
+        int port
+    ) throws IOException {
         return bind(new InetSocketAddress(host, port));
     }
 
-    public TCPMessageServerConnection bind(SocketAddress bindAddress) throws IOException {
-        var connection = tcpFrameServer.bind(bindAddress);
+    public Result<TCPMessageServerConnection, TCPServer.BindFailure<SocketAddress>> bind(
+        SocketAddress bindAddress
+    ) throws IOException {
+        var result = tcpFrameServer.bind(bindAddress);
 
         // Announce the upgrade from raw TCP to message transport.
-        LOGGER.info("Upgraded TCP Frame server at {} to message transport (TCPMessageServerConnection).", bindAddress);
+        result.ifOk(
+            $ -> LOGGER.info(
+                "Upgraded TCP Frame server at {} to message transport (TCPMessageServerConnection).",
+                bindAddress
+            )
+        );
 
-        return new TCPMessageServerConnection(tcpMessageConfig, schema, streamCodecs, connection);
+        return result.map(
+            connection -> new TCPMessageServerConnection(tcpMessageConfig, schema, streamCodecs, connection)
+        );
     }
 }

@@ -21,18 +21,20 @@ public class TCPFrameLatencyTest {
 
     public static void main(String[] args) throws Exception {
         var server = new TCPFrameServer();
-        var serverConn = server.bind(TCPTestConstants.HOST, TCPTestConstants.PORT);
+        var serverBindResult = server.bind(TCPTestConstants.HOST, TCPTestConstants.PORT);
 
-        // Echo server: send back each received frame; flush so client sees it promptly.
-        serverConn.listen(() -> (connection, payload) -> {
-            try {
-                // payload is already in read mode with remaining() == frame size.
-                // sendFrame copies; we can pass payload directly.
-                connection.transport().sendFrame(payload);
-                connection.transport().flushWrites();
-            } catch (IOException ignore) {
-                // test-only
-            }
+        serverBindResult.ifOk(tcpFrameServerConnection -> {
+            // Echo server: send back each received frame; flush so client sees it promptly.
+            tcpFrameServerConnection.listen(() -> (connection, payload) -> {
+                try {
+                    // payload is already in read mode with remaining() == frame size.
+                    // sendFrame copies; we can pass payload directly.
+                    connection.transport().sendFrame(payload);
+                    connection.transport().flushWrites();
+                } catch (IOException ignore) {
+                    // test-only
+                }
+            });
         });
 
         var client = new TCPFrameClient(TCPFrameConfig.DEFAULT);
@@ -104,7 +106,13 @@ public class TCPFrameLatencyTest {
         }).start());
 
         done.await();
-        serverConn.close();
+        serverBindResult.ifOk(tcpFrameServerConnection -> {
+            try {
+                tcpFrameServerConnection.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     private static double nanosToMicros(long ns) {

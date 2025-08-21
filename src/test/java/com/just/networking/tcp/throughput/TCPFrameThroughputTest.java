@@ -15,17 +15,19 @@ public class TCPFrameThroughputTest {
     public static void main(String[] args) throws Exception {
         var server = new TCPFrameServer();
 
-        var serverConnection = server.bind(TCPTestConstants.HOST, TCPTestConstants.PORT);
+        var serverBindResult = server.bind(TCPTestConstants.HOST, TCPTestConstants.PORT);
 
         var latch = new CountDownLatch(1);
         var bytesReceived = new LongAdder();
 
-        serverConnection.listen(() -> (connection, payload) -> {
-            bytesReceived.add(payload.remaining());
+        serverBindResult.ifOk(tcpFrameServerConnection -> {
+            tcpFrameServerConnection.listen(() -> (connection, payload) -> {
+                bytesReceived.add(payload.remaining());
 
-            if (bytesReceived.longValue() >= TCPTestConstants.TOTAL_BYTES) {
-                latch.countDown();
-            }
+                if (bytesReceived.longValue() >= TCPTestConstants.TOTAL_BYTES) {
+                    latch.countDown();
+                }
+            });
         });
 
         var client = new TCPFrameClient(TCPFrameConfig.DEFAULT);
@@ -75,6 +77,12 @@ public class TCPFrameThroughputTest {
 
         System.out.printf("Server received %d MB%n", bytesReceived.longValue() / TCPTestConstants.MB_SIZE);
 
-        serverConnection.close();
+        serverBindResult.ifOk(tcpFrameServerConnection -> {
+            try {
+                tcpFrameServerConnection.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 }

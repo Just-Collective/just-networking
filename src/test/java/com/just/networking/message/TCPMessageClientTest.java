@@ -27,9 +27,14 @@ public class TCPMessageClientTest {
         // Bootstrap server components.
         var tcpServerConfig = TCPMessageConfig.DEFAULT;
         var tcpMessageServer = new TCPMessageServer(tcpServerConfig, schema, map);
-        var tcpMessageServerConnection = tcpMessageServer.bind(TCPTestConstants.HOST, TCPTestConstants.PORT);
+        var serverBindResult = tcpMessageServer.bind(TCPTestConstants.HOST, TCPTestConstants.PORT);
         // Start the server.
-        tcpMessageServerConnection.listen(new TCPMessageReadLoop<>(schema, map), MessageReadLoopHandlerImpl::new);
+        serverBindResult.ifOk(
+            tcpMessageServerConnection -> tcpMessageServerConnection.listen(
+                new TCPMessageReadLoop<>(schema, map),
+                MessageReadLoopHandlerImpl::new
+            )
+        );
 
         // Bootstrap client.
         var msgClient = new TCPMessageClient(schema, map);
@@ -59,7 +64,13 @@ public class TCPMessageClientTest {
             }
         });
 
-        tcpMessageServerConnection.close();
+        serverBindResult.ifOk(tcpMessageServerConnection -> {
+            try {
+                tcpMessageServerConnection.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
 }
