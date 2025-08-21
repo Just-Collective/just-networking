@@ -1,5 +1,7 @@
 package com.just.networking.server;
 
+import com.bvanseg.just.functional.result.Result;
+
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -12,7 +14,7 @@ public interface ServerConnection<C extends Connection<?>> extends SafeAutoClose
 
     boolean isOpen();
 
-    C accept() throws IOException;
+    Result<C, IOException> accept();
 
     default <H> Thread listen(ReadLoop<C, H> readLoop, Supplier<? extends H> handlerSupplier) {
         return listen("client-accept", Executors.newVirtualThreadPerTaskExecutor(), readLoop, handlerSupplier);
@@ -26,12 +28,12 @@ public interface ServerConnection<C extends Connection<?>> extends SafeAutoClose
     ) {
         return Thread.ofVirtual().name(acceptThreadName).start(() -> {
             while (isOpen()) {
-                try {
-                    var connection = accept();
-                    clientExecutorService.submit(() -> readLoop.run(connection, handlerSupplier.get()));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                var result = accept();
+
+                // TODO: Handle error here. What if the result fails?
+                result.ifOk(
+                    connection -> clientExecutorService.submit(() -> readLoop.run(connection, handlerSupplier.get()))
+                );
             }
         });
     }

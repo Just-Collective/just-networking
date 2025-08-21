@@ -42,8 +42,9 @@ public final class TCPMessageServerConnection implements ServerConnection<TCPMes
     }
 
     @Override
-    public TCPMessageConnection accept() throws IOException {
-        return new TCPMessageConnection(tcpMessageConfig, schema, streamCodecs, tcpFrameServerConnection.accept());
+    public Result<TCPMessageConnection, IOException> accept() {
+        return tcpFrameServerConnection.accept()
+            .map(connection -> new TCPMessageConnection(tcpMessageConfig, schema, streamCodecs, connection));
     }
 
     @Override

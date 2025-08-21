@@ -27,8 +27,8 @@ public final class TCPFrameServerConnection implements ServerConnection<TCPFrame
     }
 
     @Override
-    public TCPFrameConnection accept() throws IOException {
-        return new TCPFrameConnection(tcpFrameConfig, tcpServerConnection.accept());
+    public Result<TCPFrameConnection, IOException> accept() {
+        return tcpServerConnection.accept().map(connection -> new TCPFrameConnection(tcpFrameConfig, connection));
     }
 
     @Override

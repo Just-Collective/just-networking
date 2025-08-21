@@ -24,20 +24,25 @@ public final class TCPServerConnection implements ServerConnection<TCPConnection
     }
 
     @Override
-    public TCPConnection accept() throws IOException {
+    public Result<TCPConnection, IOException> accept() {
         if (!serverSocketChannel.isOpen()) {
             throw new IllegalStateException("Server not bound. Call bind() first.");
         }
 
-        // Blocking accept.
-        var socketChannel = serverSocketChannel.accept();
+        // TODO: Return specific error type here instead of the exception type.
+        try {
+            // Blocking accept.
+            var socketChannel = serverSocketChannel.accept();
 
-        // Set per-connection options; channel starts connected
-        socketChannel.configureBlocking(true);
-        socketChannel.setOption(StandardSocketOptions.TCP_NODELAY, true);
-        socketChannel.setOption(StandardSocketOptions.SO_KEEPALIVE, true);
+            // Set per-connection options; channel starts connected
+            socketChannel.configureBlocking(true);
+            socketChannel.setOption(StandardSocketOptions.TCP_NODELAY, true);
+            socketChannel.setOption(StandardSocketOptions.SO_KEEPALIVE, true);
 
-        return new TCPConnection(socketChannel);
+            return Result.ok(new TCPConnection(socketChannel));
+        } catch (IOException e) {
+            return Result.err(e);
+        }
     }
 
     @Override
