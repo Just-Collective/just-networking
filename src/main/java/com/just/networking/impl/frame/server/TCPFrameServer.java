@@ -6,8 +6,12 @@ import java.net.SocketAddress;
 
 import com.just.networking.config.frame.TCPFrameConfig;
 import com.just.networking.impl.tcp.server.TCPServer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TCPFrameServer {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(TCPFrameServer.class);
 
     private final TCPFrameConfig tcpFrameConfig;
 
@@ -31,6 +35,11 @@ public class TCPFrameServer {
     }
 
     public TCPFrameServerConnection bind(SocketAddress bindAddress) throws IOException {
-        return new TCPFrameServerConnection(tcpFrameConfig, tcpServer.bind(bindAddress));
+        var connection = tcpServer.bind(bindAddress);
+
+        // Announce the upgrade from raw TCP to framed transport.
+        LOGGER.info("Upgraded TCP server at {} to framed transport (TCPFrameServerConnection).", bindAddress);
+
+        return new TCPFrameServerConnection(tcpFrameConfig, connection);
     }
 }
