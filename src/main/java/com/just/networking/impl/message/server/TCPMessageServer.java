@@ -12,8 +12,12 @@ import java.util.Map;
 import com.just.networking.config.message.TCPMessageConfig;
 import com.just.networking.impl.frame.server.TCPFrameServer;
 import com.just.networking.impl.message.Message;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TCPMessageServer {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(TCPMessageServer.class);
 
     private final TCPMessageConfig tcpMessageConfig;
 
@@ -63,6 +67,11 @@ public class TCPMessageServer {
     }
 
     public TCPMessageServerConnection bind(SocketAddress bindAddress) throws IOException {
-        return new TCPMessageServerConnection(tcpMessageConfig, schema, streamCodecs, tcpFrameServer.bind(bindAddress));
+        var connection = tcpFrameServer.bind(bindAddress);
+
+        // Announce the upgrade from raw TCP to message transport.
+        LOGGER.info("Upgraded TCP Frame server at {} to message transport (TCPMessageServerConnection).", bindAddress);
+
+        return new TCPMessageServerConnection(tcpMessageConfig, schema, streamCodecs, connection);
     }
 }
