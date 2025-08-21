@@ -6,7 +6,6 @@ import com.bvanseg.just.serialization.codec.stream.schema.StreamCodecSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
@@ -67,13 +66,13 @@ public class TCPMessageServer {
     public Result<TCPMessageServerConnection, TCPServer.BindFailure<SocketAddress>> bind(
         String host,
         int port
-    ) throws IOException {
+    ) {
         return bind(new InetSocketAddress(host, port));
     }
 
     public Result<TCPMessageServerConnection, TCPServer.BindFailure<SocketAddress>> bind(
         SocketAddress bindAddress
-    ) throws IOException {
+    ) {
         var result = tcpFrameServer.bind(bindAddress);
 
         // Announce the upgrade from raw TCP to message transport.

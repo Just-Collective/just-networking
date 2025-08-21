@@ -4,7 +4,6 @@ import com.bvanseg.just.functional.result.Result;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
@@ -35,13 +34,13 @@ public class TCPFrameServer {
     public Result<TCPFrameServerConnection, TCPServer.BindFailure<SocketAddress>> bind(
         String host,
         int port
-    ) throws IOException {
+    ) {
         return bind(new InetSocketAddress(host, port));
     }
 
     public Result<TCPFrameServerConnection, TCPServer.BindFailure<SocketAddress>> bind(
         SocketAddress bindAddress
-    ) throws IOException {
+    ) {
         var result = tcpServer.bind(bindAddress);
 
         // Announce the upgrade from raw TCP to framed transport.
