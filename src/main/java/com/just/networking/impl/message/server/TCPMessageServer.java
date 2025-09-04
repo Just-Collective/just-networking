@@ -11,7 +11,7 @@ import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.util.Map;
 
-import com.just.networking.config.message.TCPMessageConfig;
+import com.just.networking.config.Config;
 import com.just.networking.impl.frame.server.TCPFrameServer;
 import com.just.networking.impl.message.Message;
 import com.just.networking.impl.tcp.server.TCPServer;
@@ -20,7 +20,7 @@ public class TCPMessageServer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TCPMessageServer.class);
 
-    private final TCPMessageConfig tcpMessageConfig;
+    private final Config config;
 
     private final StreamCodecSchema<ByteBuffer> schema;
 
@@ -29,35 +29,20 @@ public class TCPMessageServer {
     private final TCPFrameServer tcpFrameServer;
 
     public TCPMessageServer(
+        Config config,
         StreamCodecSchema<ByteBuffer> schema,
         Map<Short, StreamCodec<? extends Message<?>>> streamCodecs
     ) {
-        this(TCPMessageConfig.DEFAULT, schema, streamCodecs, new TCPFrameServer(TCPMessageConfig.DEFAULT.frame()));
+        this(config, schema, streamCodecs, new TCPFrameServer(config));
     }
 
     public TCPMessageServer(
-        TCPMessageConfig tcpMessageConfig,
-        StreamCodecSchema<ByteBuffer> schema,
-        Map<Short, StreamCodec<? extends Message<?>>> streamCodecs
-    ) {
-        this(schema, streamCodecs, new TCPFrameServer(tcpMessageConfig.frame()));
-    }
-
-    public TCPMessageServer(
+        Config config,
         StreamCodecSchema<ByteBuffer> schema,
         Map<Short, StreamCodec<? extends Message<?>>> streamCodecs,
         TCPFrameServer tcpFrameServer
     ) {
-        this(TCPMessageConfig.DEFAULT, schema, streamCodecs, tcpFrameServer);
-    }
-
-    public TCPMessageServer(
-        TCPMessageConfig tcpMessageConfig,
-        StreamCodecSchema<ByteBuffer> schema,
-        Map<Short, StreamCodec<? extends Message<?>>> streamCodecs,
-        TCPFrameServer tcpFrameServer
-    ) {
-        this.tcpMessageConfig = tcpMessageConfig;
+        this.config = config;
         this.schema = schema;
         this.streamCodecs = streamCodecs;
         this.tcpFrameServer = tcpFrameServer;
@@ -84,7 +69,7 @@ public class TCPMessageServer {
         );
 
         return result.map(
-            connection -> new TCPMessageServerConnection(tcpMessageConfig, schema, streamCodecs, connection)
+            connection -> new TCPMessageServerConnection(config, schema, streamCodecs, connection)
         );
     }
 }

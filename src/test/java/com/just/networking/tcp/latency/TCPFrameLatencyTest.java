@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
 import com.just.networking.SafeAutoCloseable;
-import com.just.networking.config.frame.TCPFrameConfig;
+import com.just.networking.config.Config;
 import com.just.networking.impl.frame.client.TCPFrameClient;
 import com.just.networking.impl.frame.server.TCPFrameServer;
 import com.just.networking.tcp.TCPTestConstants;
@@ -21,7 +21,8 @@ public class TCPFrameLatencyTest {
     static final int MEASURE_MESSAGES = 50_000;
 
     public static void main(String[] args) throws Exception {
-        var server = new TCPFrameServer();
+        var config = Config.DEFAULT;
+        var server = new TCPFrameServer(config);
         var serverBindResult = server.bind(TCPTestConstants.HOST, TCPTestConstants.PORT);
 
         serverBindResult.ifOk(tcpFrameServerConnection -> {
@@ -38,7 +39,7 @@ public class TCPFrameLatencyTest {
             });
         });
 
-        var client = new TCPFrameClient(TCPFrameConfig.DEFAULT);
+        var client = new TCPFrameClient(config);
         var connRes = client.connect(TCPTestConstants.HOST, TCPTestConstants.PORT);
         connRes.ifErr(err -> {
             throw new RuntimeException("connect failed: " + err);

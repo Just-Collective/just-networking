@@ -9,7 +9,7 @@ import java.nio.ByteBuffer;
 import java.util.Map;
 
 import com.just.networking.Connection;
-import com.just.networking.config.message.TCPMessageConfig;
+import com.just.networking.config.Config;
 import com.just.networking.impl.frame.TCPFrameConnection;
 
 public class TCPMessageConnection implements Connection<TCPMessageTransport> {
@@ -19,14 +19,14 @@ public class TCPMessageConnection implements Connection<TCPMessageTransport> {
     private final TCPMessageTransport tcpMessageTransport;
 
     public TCPMessageConnection(
-        TCPMessageConfig tcpMessageConfig,
+        Config config,
         StreamCodecSchema<ByteBuffer> schema,
         Map<Short, StreamCodec<? extends Message<?>>> streamCodecs,
         TCPFrameConnection tcpFrameConnection
     ) {
         this.tcpFrameConnection = tcpFrameConnection;
         this.tcpMessageTransport = new TCPMessageTransport(
-            tcpMessageConfig,
+            config,
             schema,
             streamCodecs,
             tcpFrameConnection.transport()

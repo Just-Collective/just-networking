@@ -2,13 +2,15 @@ package com.just.networking.impl.frame.channel;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.channels.ClosedChannelException;
 import java.util.function.Function;
 
-import com.just.networking.config.frame.TCPFrameConfig;
+import com.just.networking.config.Config;
+import com.just.networking.config.DefaultConfigKeys;
 
 public class TCPFrameReadChannel implements AutoCloseable {
+
+    private final Config config;
 
     private final Function<ByteBuffer, Integer> reader;
 
@@ -22,9 +24,13 @@ public class TCPFrameReadChannel implements AutoCloseable {
     // -1 => need to read length next
     private int pendingLen = -1;
 
-    public TCPFrameReadChannel(TCPFrameConfig tcpFrameConfig, Function<ByteBuffer, Integer> reader) {
+    public TCPFrameReadChannel(Config config, Function<ByteBuffer, Integer> reader) {
+        this.config = config;
         this.reader = reader;
-        this.receiverBuffer = ByteBuffer.allocateDirect(256 * 1024).order(ByteOrder.BIG_ENDIAN);
+        this.receiverBuffer = ByteBuffer.allocateDirect(
+            config.get(DefaultConfigKeys.TCP_FRAME_READ_CHANNEL_BUFFER_SIZE_IN_BYTES)
+        )
+            .order(config.get(DefaultConfigKeys.TCP_FRAME_READ_CHANNEL_BYTE_ORDER));
 
         // Keep receiverBuffer in "read mode" with no data initially.
         receiverBuffer.limit(0);
@@ -82,7 +88,8 @@ public class TCPFrameReadChannel implements AutoCloseable {
 
             if (len > receiverBuffer.capacity()) {
                 // Allocate a one-off buffer for this large frame.
-                oversized = ByteBuffer.allocate(len).order(ByteOrder.BIG_ENDIAN);
+                this.oversized = ByteBuffer.allocate(len)
+                    .order(config.get(DefaultConfigKeys.TCP_FRAME_READ_CHANNEL_BYTE_ORDER));
                 // Copy any payload bytes already available in receiverBuffer into oversized.
                 var available = Math.min(receiverBuffer.remaining(), len);
 
@@ -111,10 +118,11 @@ public class TCPFrameReadChannel implements AutoCloseable {
         var frameEnd = receiverBuffer.position() + pendingLen;
         var oldLimit = receiverBuffer.limit();
         receiverBuffer.limit(frameEnd);
-        var view = receiverBuffer.slice().order(ByteOrder.BIG_ENDIAN);
+        var view = receiverBuffer.slice()
+            .order(config.get(DefaultConfigKeys.TCP_FRAME_READ_CHANNEL_BYTE_ORDER));
         receiverBuffer.limit(oldLimit);
         receiverBuffer.position(frameEnd);
-        pendingLen = -1;
+        this.pendingLen = -1;
 
         return view;
     }

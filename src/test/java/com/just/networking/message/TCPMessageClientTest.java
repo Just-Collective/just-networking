@@ -7,7 +7,8 @@ import java.io.IOException;
 import java.util.Map;
 
 import com.just.networking.SafeAutoCloseable;
-import com.just.networking.config.message.TCPMessageConfig;
+import com.just.networking.config.Config;
+import com.just.networking.config.DefaultConfigKeys;
 import com.just.networking.impl.message.Message;
 import com.just.networking.impl.message.client.TCPMessageClient;
 import com.just.networking.impl.message.server.TCPMessageReadLoop;
@@ -16,7 +17,7 @@ import com.just.networking.tcp.TCPTestConstants;
 
 public class TCPMessageClientTest {
 
-    public static void main(String[] args) throws IOException, InterruptedException {
+    public static void main(String[] args) throws InterruptedException {
         // Bootstrap message "registry" and means of encode/decode.
         var schema = new ByteBufferStreamCodecSchema();
         Map<Short, StreamCodec<? extends Message<?>>> map = Map.ofEntries(
@@ -26,8 +27,10 @@ public class TCPMessageClientTest {
         );
 
         // Bootstrap server components.
-        var tcpServerConfig = TCPMessageConfig.DEFAULT;
-        var tcpMessageServer = new TCPMessageServer(tcpServerConfig, schema, map);
+        var config = Config.DEFAULT.toBuilder()
+            .with(DefaultConfigKeys.TCP_MESSAGE_WRITE_CHANNEL_SCRATCH_BUFFER_SIZE_IN_BYTES, 0)
+            .build();
+        var tcpMessageServer = new TCPMessageServer(config, schema, map);
         var serverBindResult = tcpMessageServer.bind(TCPTestConstants.HOST, TCPTestConstants.PORT);
         // Start the server.
         serverBindResult.ifOk(
@@ -38,7 +41,7 @@ public class TCPMessageClientTest {
         );
 
         // Bootstrap client.
-        var msgClient = new TCPMessageClient(schema, map);
+        var msgClient = new TCPMessageClient(config, schema, map);
         // Connect the client to the server.
         var connectionResult = msgClient.connect(TCPTestConstants.HOST, TCPTestConstants.PORT);
 

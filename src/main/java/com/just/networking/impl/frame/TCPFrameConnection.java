@@ -5,7 +5,7 @@ import com.bvanseg.just.functional.result.Result;
 import java.io.IOException;
 
 import com.just.networking.Connection;
-import com.just.networking.config.frame.TCPFrameConfig;
+import com.just.networking.config.Config;
 import com.just.networking.impl.tcp.TCPConnection;
 
 public class TCPFrameConnection implements Connection<TCPFrameTransport> {
@@ -14,9 +14,9 @@ public class TCPFrameConnection implements Connection<TCPFrameTransport> {
 
     private final TCPFrameTransport tcpFrameTransport;
 
-    public TCPFrameConnection(TCPFrameConfig tcpFrameConfig, TCPConnection tcpConnection) {
+    public TCPFrameConnection(Config config, TCPConnection tcpConnection) {
         this.tcpConnection = tcpConnection;
-        this.tcpFrameTransport = new TCPFrameTransport(tcpFrameConfig, tcpConnection.transport());
+        this.tcpFrameTransport = new TCPFrameTransport(config, tcpConnection.transport());
     }
 
     @Override

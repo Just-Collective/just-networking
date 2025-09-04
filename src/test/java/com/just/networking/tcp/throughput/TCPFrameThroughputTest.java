@@ -6,7 +6,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.LongAdder;
 
 import com.just.networking.SafeAutoCloseable;
-import com.just.networking.config.frame.TCPFrameConfig;
+import com.just.networking.config.Config;
 import com.just.networking.impl.frame.client.TCPFrameClient;
 import com.just.networking.impl.frame.server.TCPFrameServer;
 import com.just.networking.tcp.TCPTestConstants;
@@ -14,7 +14,8 @@ import com.just.networking.tcp.TCPTestConstants;
 public class TCPFrameThroughputTest {
 
     public static void main(String[] args) throws Exception {
-        var server = new TCPFrameServer();
+        var config = Config.DEFAULT;
+        var server = new TCPFrameServer(config);
 
         var serverBindResult = server.bind(TCPTestConstants.HOST, TCPTestConstants.PORT);
 
@@ -31,7 +32,7 @@ public class TCPFrameThroughputTest {
             });
         });
 
-        var client = new TCPFrameClient(TCPFrameConfig.DEFAULT);
+        var client = new TCPFrameClient(Config.DEFAULT);
         var connectionResult = client.connect(TCPTestConstants.HOST, TCPTestConstants.PORT);
 
         connectionResult.ifOk(conn -> new Thread(() -> {

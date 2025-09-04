@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Map;
 
-import com.just.networking.config.message.TCPMessageConfig;
+import com.just.networking.config.Config;
 import com.just.networking.impl.frame.server.TCPFrameServerConnection;
 import com.just.networking.impl.message.Message;
 import com.just.networking.impl.message.TCPMessageConnection;
@@ -16,7 +16,7 @@ import com.just.networking.server.ServerConnection;
 
 public final class TCPMessageServerConnection implements ServerConnection<TCPMessageConnection> {
 
-    private final TCPMessageConfig tcpMessageConfig;
+    private final Config config;
 
     private final StreamCodecSchema<ByteBuffer> schema;
 
@@ -25,12 +25,12 @@ public final class TCPMessageServerConnection implements ServerConnection<TCPMes
     private final TCPFrameServerConnection tcpFrameServerConnection;
 
     public TCPMessageServerConnection(
-        TCPMessageConfig tcpMessageConfig,
+        Config config,
         StreamCodecSchema<ByteBuffer> schema,
         Map<Short, StreamCodec<? extends Message<?>>> streamCodecs,
         TCPFrameServerConnection tcpFrameServerConnection
     ) {
-        this.tcpMessageConfig = tcpMessageConfig;
+        this.config = config;
         this.schema = schema;
         this.streamCodecs = streamCodecs;
         this.tcpFrameServerConnection = tcpFrameServerConnection;
@@ -44,7 +44,7 @@ public final class TCPMessageServerConnection implements ServerConnection<TCPMes
     @Override
     public Result<TCPMessageConnection, IOException> accept() {
         return tcpFrameServerConnection.accept()
-            .map(connection -> new TCPMessageConnection(tcpMessageConfig, schema, streamCodecs, connection));
+            .map(connection -> new TCPMessageConnection(config, schema, streamCodecs, connection));
     }
 
     @Override

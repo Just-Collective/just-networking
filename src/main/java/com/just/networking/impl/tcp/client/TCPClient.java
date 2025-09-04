@@ -12,19 +12,16 @@ import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.nio.channels.UnresolvedAddressException;
 
-import com.just.networking.config.tcp.TCPConfig;
+import com.just.networking.config.Config;
+import com.just.networking.config.DefaultConfigKeys;
 import com.just.networking.impl.tcp.TCPConnection;
 
 public class TCPClient {
 
-    private final TCPConfig tcpConfig;
+    private final Config config;
 
-    public TCPClient() {
-        this(TCPConfig.DEFAULT);
-    }
-
-    public TCPClient(TCPConfig tcpConfig) {
-        this.tcpConfig = tcpConfig;
+    public TCPClient(Config config) {
+        this.config = config;
     }
 
     public Result<TCPConnection, ConnectFailure<SocketAddress>> connect(
@@ -37,34 +34,43 @@ public class TCPClient {
             var socketChannel = SocketChannel.open();
 
             // Configure blocking vs. non-blocking for a connection attempt (see timeout below).
-            var needsTimeout = tcpConfig.socket().connectTimeoutMillis().unwrapOr(0) > 0;
-            socketChannel.configureBlocking(!(needsTimeout)); // non-blocking if we need to enforce timeout
+            var blocking = config.get(DefaultConfigKeys.TCP_CLIENT_SOCKET_BLOCKING);
+            var connectTimeoutMillis = config.get(DefaultConfigKeys.TCP_CLIENT_SOCKET_CONNECT_TIMEOUT_MILLIS);
+            var needsTimeout = connectTimeoutMillis > 0;
+            // non-blocking if we need to enforce timeout.
+            socketChannel.configureBlocking(!needsTimeout);
 
-            socketChannel.setOption(StandardSocketOptions.TCP_NODELAY, tcpConfig.socket().tcpNoDelay());
-            socketChannel.setOption(StandardSocketOptions.SO_KEEPALIVE, tcpConfig.socket().keepAlive());
-            tcpConfig.socket().soLinger().ifSome(soLingerSeconds -> {
+            socketChannel.setOption(
+                StandardSocketOptions.TCP_NODELAY,
+                config.get(DefaultConfigKeys.TCP_CLIENT_SOCKET_NO_DELAY)
+            );
+            socketChannel.setOption(
+                StandardSocketOptions.SO_KEEPALIVE,
+                config.get(DefaultConfigKeys.TCP_CLIENT_SOCKET_KEEP_ALIVE)
+            );
+            config.get(DefaultConfigKeys.TCP_CLIENT_SOCKET_SO_LINGER_SECONDS).ifSome(soLingerSeconds -> {
                 try {
                     socketChannel.setOption(StandardSocketOptions.SO_LINGER, soLingerSeconds);
-                } catch (IOException ignored) {}
+                } catch (IOException ignored) {
+                    // TODO: Log a warning.
+                }
             });
 
             // Simple path: blocking connect
             socketChannel.connect(socketAddress);
 
             if (!needsTimeout) {
-                // If you want to block semantics at runtime, ensure it's true.
-                socketChannel.configureBlocking(tcpConfig.socket().blocking());
+                socketChannel.configureBlocking(blocking);
             } else {
                 try (var sel = Selector.open()) {
                     socketChannel.register(sel, SelectionKey.OP_CONNECT);
-                    var timeout = tcpConfig.socket().connectTimeoutMillis().unwrapOr(0);
 
-                    if (sel.select(timeout) == 0) {
+                    if (sel.select(connectTimeoutMillis) == 0) {
                         socketChannel.close();
                         return Result.err(
                             new ConnectFailure.ConnectionRefused<>(
                                 socketAddress,
-                                new ConnectException("Connect timeout after " + timeout + "ms.")
+                                new ConnectException("Connect timeout after " + connectTimeoutMillis + "ms.")
                             )
                         );
                     }
@@ -87,7 +93,7 @@ public class TCPClient {
                 }
 
                 // Restore desired runtime blocking mode.
-                socketChannel.configureBlocking(tcpConfig.socket().blocking());
+                socketChannel.configureBlocking(blocking);
             }
 
             return Result.ok(new TCPConnection(socketChannel));

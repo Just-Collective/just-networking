@@ -5,7 +5,7 @@ import java.nio.ByteBuffer;
 import java.util.function.Function;
 
 import com.just.networking.Writer;
-import com.just.networking.config.frame.TCPFrameConfig;
+import com.just.networking.config.Config;
 
 public class TCPFrameChannel implements AutoCloseable {
 
@@ -14,12 +14,12 @@ public class TCPFrameChannel implements AutoCloseable {
     private final TCPFrameWriteChannel tcpFrameWriteChannel;
 
     public TCPFrameChannel(
-        TCPFrameConfig tcpFrameConfig,
+        Config config,
         Function<ByteBuffer, Integer> reader,
         Writer writer
     ) {
-        this.tcpFrameReadChannel = new TCPFrameReadChannel(tcpFrameConfig, reader);
-        this.tcpFrameWriteChannel = new TCPFrameWriteChannel(tcpFrameConfig, writer);
+        this.tcpFrameReadChannel = new TCPFrameReadChannel(config, reader);
+        this.tcpFrameWriteChannel = new TCPFrameWriteChannel(config, writer);
     }
 
     @Override

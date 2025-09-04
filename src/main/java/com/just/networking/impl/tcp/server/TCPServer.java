@@ -15,20 +15,17 @@ import java.nio.channels.NetworkChannel;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.UnresolvedAddressException;
 
-import com.just.networking.config.tcp.TCPConfig;
+import com.just.networking.config.Config;
+import com.just.networking.config.DefaultConfigKeys;
 
 public class TCPServer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TCPServer.class);
 
-    private final TCPConfig tcpConfig;
+    private final Config config;
 
-    public TCPServer() {
-        this(TCPConfig.DEFAULT);
-    }
-
-    public TCPServer(TCPConfig tcpConfig) {
-        this.tcpConfig = tcpConfig;
+    public TCPServer(Config config) {
+        this.config = config;
     }
 
     public Result<TCPServerConnection, BindFailure<SocketAddress>> bind(String host, int port) {
@@ -48,16 +45,18 @@ public class TCPServer {
 
         try {
             // Choose blocking semantics explicitly.
-            serverSocketChannel.configureBlocking(true);
+            var blocking = config.get(DefaultConfigKeys.TCP_SERVER_SOCKET_BLOCKING);
+            serverSocketChannel.configureBlocking(blocking);
         } catch (IOException e) {
             LOGGER.error("Failed to configure blocking mode.", e);
             closeQuietly(serverSocketChannel);
             return Result.err(new BindFailure.ConfigureBlockingFailed<>(socketAddress, e));
         }
 
+        var soReuseAddress = config.get(DefaultConfigKeys.TCP_SERVER_SOCKET_SO_REUSEADDR);
         try {
             // Common and safe default for servers: allow quick rebinding on restart.
-            serverSocketChannel.setOption(StandardSocketOptions.SO_REUSEADDR, true);
+            serverSocketChannel.setOption(StandardSocketOptions.SO_REUSEADDR, soReuseAddress);
         } catch (UnsupportedOperationException e) {
             // Not fatal; just log at DEBUG since some platforms may not support it.
             LOGGER.debug("SO_REUSEADDR unsupported on this platform.");
@@ -65,7 +64,7 @@ public class TCPServer {
             LOGGER.error("Failed to set socket option SO_REUSEADDR.", e);
             closeQuietly(serverSocketChannel);
             return Result.err(
-                new BindFailure.SetOptionFailed<>(socketAddress, StandardSocketOptions.SO_REUSEADDR, true, e)
+                new BindFailure.SetOptionFailed<>(socketAddress, StandardSocketOptions.SO_REUSEADDR, soReuseAddress, e)
             );
         }
 
@@ -118,7 +117,7 @@ public class TCPServer {
         // Dump all supported socket options (name, type, value) at DEBUG level.
         debugDumpOptions(serverSocketChannel);
 
-        return Result.ok(new TCPServerConnection(serverSocketChannel));
+        return Result.ok(new TCPServerConnection(config, serverSocketChannel));
     }
 
     private static void closeQuietly(ServerSocketChannel serverSocketChannel) {

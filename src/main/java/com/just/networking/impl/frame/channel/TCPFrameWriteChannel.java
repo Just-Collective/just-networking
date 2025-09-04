@@ -2,11 +2,11 @@ package com.just.networking.impl.frame.channel;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.channels.ClosedChannelException;
 
 import com.just.networking.Writer;
-import com.just.networking.config.frame.TCPFrameConfig;
+import com.just.networking.config.Config;
+import com.just.networking.config.DefaultConfigKeys;
 
 public class TCPFrameWriteChannel implements AutoCloseable {
 
@@ -21,10 +21,13 @@ public class TCPFrameWriteChannel implements AutoCloseable {
 
     private final Writer writer;
 
-    public TCPFrameWriteChannel(TCPFrameConfig tcpFrameConfig, Writer writer) {
+    public TCPFrameWriteChannel(Config config, Writer writer) {
         this.header = ByteBuffer.allocateDirect(TCPFrameChannelConstants.LEN_BYTES)
-            .order(ByteOrder.BIG_ENDIAN);
-        this.staging = ByteBuffer.allocateDirect(4 * 1024 * 1024).order(ByteOrder.BIG_ENDIAN);
+            .order(config.get(DefaultConfigKeys.TCP_FRAME_WRITE_CHANNEL_BYTE_ORDER));
+        this.staging = ByteBuffer.allocateDirect(
+            config.get(DefaultConfigKeys.TCP_FRAME_WRITE_CHANNEL_BUFFER_SIZE_IN_BYTES)
+        )
+            .order(config.get(DefaultConfigKeys.TCP_FRAME_WRITE_CHANNEL_BYTE_ORDER));
         this.vec = new ByteBuffer[2];
         this.writer = writer;
     }

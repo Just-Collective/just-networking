@@ -7,27 +7,23 @@ import org.slf4j.LoggerFactory;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
-import com.just.networking.config.frame.TCPFrameConfig;
+import com.just.networking.config.Config;
 import com.just.networking.impl.tcp.server.TCPServer;
 
 public class TCPFrameServer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TCPFrameServer.class);
 
-    private final TCPFrameConfig tcpFrameConfig;
+    private final Config config;
 
     private final TCPServer tcpServer;
 
-    public TCPFrameServer() {
-        this(TCPFrameConfig.DEFAULT);
+    public TCPFrameServer(Config config) {
+        this(config, new TCPServer(config));
     }
 
-    public TCPFrameServer(TCPFrameConfig tcpFrameConfig) {
-        this(tcpFrameConfig, new TCPServer(tcpFrameConfig.tcp()));
-    }
-
-    public TCPFrameServer(TCPFrameConfig tcpFrameConfig, TCPServer tcpServer) {
-        this.tcpFrameConfig = tcpFrameConfig;
+    public TCPFrameServer(Config config, TCPServer tcpServer) {
+        this.config = config;
         this.tcpServer = tcpServer;
     }
 
@@ -48,6 +44,6 @@ public class TCPFrameServer {
             $ -> LOGGER.info("Upgraded TCP server at {} to framed transport (TCPFrameServerConnection).", bindAddress)
         );
 
-        return result.map(connection -> new TCPFrameServerConnection(tcpFrameConfig, connection));
+        return result.map(connection -> new TCPFrameServerConnection(config, connection));
     }
 }

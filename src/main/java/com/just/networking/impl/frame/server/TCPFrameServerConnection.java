@@ -5,19 +5,19 @@ import com.bvanseg.just.functional.result.Result;
 import java.io.IOException;
 import java.util.function.Supplier;
 
-import com.just.networking.config.frame.TCPFrameConfig;
+import com.just.networking.config.Config;
 import com.just.networking.impl.frame.TCPFrameConnection;
 import com.just.networking.impl.tcp.server.TCPServerConnection;
 import com.just.networking.server.ServerConnection;
 
 public final class TCPFrameServerConnection implements ServerConnection<TCPFrameConnection> {
 
-    private final TCPFrameConfig tcpFrameConfig;
+    private final Config config;
 
     private final TCPServerConnection tcpServerConnection;
 
-    public TCPFrameServerConnection(TCPFrameConfig tcpFrameConfig, TCPServerConnection tcpServerConnection) {
-        this.tcpFrameConfig = tcpFrameConfig;
+    public TCPFrameServerConnection(Config config, TCPServerConnection tcpServerConnection) {
+        this.config = config;
         this.tcpServerConnection = tcpServerConnection;
     }
 
@@ -28,7 +28,7 @@ public final class TCPFrameServerConnection implements ServerConnection<TCPFrame
 
     @Override
     public Result<TCPFrameConnection, IOException> accept() {
-        return tcpServerConnection.accept().map(connection -> new TCPFrameConnection(tcpFrameConfig, connection));
+        return tcpServerConnection.accept().map(connection -> new TCPFrameConnection(config, connection));
     }
 
     @Override

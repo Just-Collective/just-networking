@@ -6,6 +6,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicLong;
 
 import com.just.networking.SafeAutoCloseable;
+import com.just.networking.config.Config;
 import com.just.networking.impl.tcp.client.TCPClient;
 import com.just.networking.impl.tcp.server.TCPServer;
 import com.just.networking.tcp.TCPTestConstants;
@@ -13,7 +14,8 @@ import com.just.networking.tcp.TCPTestConstants;
 public class TCPThroughputTest {
 
     public static void main(String[] args) throws Exception {
-        var server = new TCPServer();
+        var config = Config.DEFAULT;
+        var server = new TCPServer(config);
 
         var serverBindResult = server.bind(TCPTestConstants.HOST, TCPTestConstants.PORT);
 
@@ -30,7 +32,7 @@ public class TCPThroughputTest {
             });
         });
 
-        var client = new TCPClient();
+        var client = new TCPClient(config);
         var connectionResult = client.connect(TCPTestConstants.HOST, TCPTestConstants.PORT);
 
         connectionResult.ifOk(conn -> new Thread(() -> {

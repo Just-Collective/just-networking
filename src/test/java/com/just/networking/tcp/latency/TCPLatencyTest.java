@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
 import com.just.networking.SafeAutoCloseable;
+import com.just.networking.config.Config;
 import com.just.networking.impl.tcp.client.TCPClient;
 import com.just.networking.impl.tcp.server.TCPServer;
 import com.just.networking.tcp.TCPTestConstants;
@@ -20,7 +21,8 @@ public class TCPLatencyTest {
     static final int MEASURE_MESSAGES = 50_000;
 
     public static void main(String[] args) throws Exception {
-        var server = new TCPServer();
+        var config = Config.DEFAULT;
+        var server = new TCPServer(config);
         var serverBindResult = server.bind(TCPTestConstants.HOST, TCPTestConstants.PORT);
 
         serverBindResult.ifOk(tcpServerConnection -> {
@@ -39,7 +41,7 @@ public class TCPLatencyTest {
             });
         });
 
-        var client = new TCPClient();
+        var client = new TCPClient(config);
         var connRes = client.connect(TCPTestConstants.HOST, TCPTestConstants.PORT);
         connRes.ifErr(err -> {
             throw new RuntimeException("connect failed: " + err);
