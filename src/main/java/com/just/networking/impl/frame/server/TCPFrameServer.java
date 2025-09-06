@@ -1,6 +1,6 @@
 package com.just.networking.impl.frame.server;
 
-import com.bvanseg.just.functional.result.Result;
+import com.just.core.functional.result.Result;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

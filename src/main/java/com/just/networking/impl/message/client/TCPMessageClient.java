@@ -1,8 +1,8 @@
 package com.just.networking.impl.message.client;
 
-import com.bvanseg.just.functional.result.Result;
-import com.bvanseg.just.serialization.codec.stream.StreamCodec;
-import com.bvanseg.just.serialization.codec.stream.schema.StreamCodecSchema;
+import com.just.codec.stream.StreamCodec;
+import com.just.codec.stream.schema.StreamCodecSchema;
+import com.just.core.functional.result.Result;
 
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;

@@ -1,6 +1,6 @@
 package com.just.networking.impl.frame;
 
-import com.bvanseg.just.functional.result.Result;
+import com.just.core.functional.result.Result;
 
 import java.io.IOException;
 

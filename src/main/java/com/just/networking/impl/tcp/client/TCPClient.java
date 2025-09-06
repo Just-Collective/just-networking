@@ -1,6 +1,6 @@
 package com.just.networking.impl.tcp.client;
 
-import com.bvanseg.just.functional.result.Result;
+import com.just.core.functional.result.Result;
 
 import java.io.IOException;
 import java.net.ConnectException;

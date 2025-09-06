@@ -1,7 +1,7 @@
 package com.just.networking.message;
 
-import com.bvanseg.just.serialization.codec.stream.StreamCodec;
-import com.bvanseg.just.serialization.codec.stream.schema.impl.ByteBufferStreamCodecSchema;
+import com.just.codec.stream.StreamCodec;
+import com.just.codec.stream.schema.impl.ByteBufferStreamCodecSchema;
 
 import java.io.IOException;
 import java.util.Map;

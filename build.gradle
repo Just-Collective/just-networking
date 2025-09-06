@@ -23,11 +23,14 @@ repositories {
 }
 
 dependencies {
+    api 'com.github.just-collective:just-codec:b28ab7a7ac'
+    api 'com.github.just-collective:just-core:c2cec71203'
     api "org.slf4j:slf4j-api:2.0.17"
 
-    compileOnly 'org.jetbrains:annotations:26.0.2'
+    // For your app's main runtime:
+    runtimeOnly("ch.qos.logback:logback-classic:1.5.18")
 
-    implementation 'com.github.bvanseg:just:973d368f5f'
+    compileOnly 'org.jetbrains:annotations:26.0.2'
 
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
