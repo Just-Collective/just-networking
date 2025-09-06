@@ -1,13 +1,9 @@
 package com.just.networking.impl.message;
 
-import com.just.codec.stream.StreamCodec;
-import com.just.codec.stream.schema.StreamCodecSchema;
 import com.just.core.functional.result.Result;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.Map;
 
 import com.just.networking.Transport;
 import com.just.networking.config.Config;
@@ -22,15 +18,13 @@ public class TCPMessageTransport implements Transport {
 
     public TCPMessageTransport(
         Config config,
-        StreamCodecSchema<ByteBuffer> schema,
-        Map<Short, StreamCodec<? extends Message<?>>> streamCodecs,
+        MessageAccess messageAccess,
         TCPFrameTransport tcpFrameTransport
     ) {
         this.tcpFrameTransport = tcpFrameTransport;
         this.tcpMessageChannel = new TCPMessageChannel(
             config,
-            schema,
-            streamCodecs,
+            messageAccess,
             () -> {
                 try {
                     return tcpFrameTransport.readFrame();
@@ -53,11 +47,11 @@ public class TCPMessageTransport implements Transport {
         return tcpFrameTransport.isOpen();
     }
 
-    public void sendMessage(Message<?> message) {
+    public void sendMessage(Message message) {
         tcpMessageChannel.sendMessage(message);
     }
 
-    public @Nullable Message<?> pollMessage() {
+    public @Nullable Message pollMessage() {
         return tcpMessageChannel.pollMessage();
     }
 

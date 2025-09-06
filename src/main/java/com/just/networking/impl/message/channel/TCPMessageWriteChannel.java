@@ -1,23 +1,20 @@
 package com.just.networking.impl.message.channel;
 
 import com.just.codec.stream.StreamCodec;
-import com.just.codec.stream.schema.StreamCodecSchema;
 
 import java.nio.ByteBuffer;
-import java.util.Map;
 import java.util.function.Consumer;
 
 import com.just.networking.config.Config;
 import com.just.networking.config.DefaultConfigKeys;
 import com.just.networking.impl.message.Message;
+import com.just.networking.impl.message.MessageAccess;
 
 public class TCPMessageWriteChannel {
 
     private final Config config;
 
-    private final StreamCodecSchema<ByteBuffer> schema;
-
-    private final Map<Short, StreamCodec<? extends Message<?>>> streamCodecs;
+    private final MessageAccess messageAccess;
 
     // Underlying I/O.
     private final Consumer<ByteBuffer> frameWriter;
@@ -30,13 +27,11 @@ public class TCPMessageWriteChannel {
 
     public TCPMessageWriteChannel(
         Config config,
-        StreamCodecSchema<ByteBuffer> schema,
-        Map<Short, StreamCodec<? extends Message<?>>> streamCodecs,
+        MessageAccess messageAccess,
         Consumer<ByteBuffer> frameWriter
     ) {
         this.config = config;
-        this.schema = schema;
-        this.streamCodecs = streamCodecs;
+        this.messageAccess = messageAccess;
         this.frameWriter = frameWriter;
 
         this.scratch = ByteBuffer.allocateDirect(
@@ -49,20 +44,24 @@ public class TCPMessageWriteChannel {
             .order(config.get(DefaultConfigKeys.TCP_MESSAGE_WRITE_CHANNEL_BYTE_ORDER));
     }
 
-    public void sendMessage(Message<?> message) {
-        final short typeId = message.id();
+    public void sendMessage(Message message) {
+        final Short networkId = messageAccess.getNetworkIdOrNull(message);
+
+        if (networkId == null) {
+            throw new IllegalArgumentException("Unknown message network ID derived from message. Message: " + message);
+        }
 
         @SuppressWarnings("unchecked")
-        final StreamCodec<Message<?>> codec = (StreamCodec<Message<?>>) streamCodecs.get(typeId);
+        final StreamCodec<Message> codec = (StreamCodec<Message>) messageAccess.getCodecOrNull(networkId);
 
         if (codec == null) {
-            throw new IllegalArgumentException("Unknown message type: " + typeId);
+            throw new IllegalArgumentException("No codec found for message. Network ID: " + networkId);
         }
 
         // Encode into scratch: [typeId | payload]
         scratch.clear();
-        scratch.putShort(typeId);
-        codec.encode(schema, scratch, message);
+        scratch.putShort(networkId);
+        codec.encode(messageAccess.getSchema(), scratch, message);
         scratch.flip();
         // includes 2 bytes of typeId
         final int msgBytes = scratch.remaining();

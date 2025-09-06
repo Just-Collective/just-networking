@@ -1,16 +1,14 @@
 package com.just.networking.impl.message.channel;
 
-import com.just.codec.stream.StreamCodec;
-import com.just.codec.stream.schema.StreamCodecSchema;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.ByteBuffer;
-import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import com.just.networking.config.Config;
 import com.just.networking.impl.message.Message;
+import com.just.networking.impl.message.MessageAccess;
 
 public class TCPMessageChannel implements AutoCloseable {
 
@@ -24,19 +22,18 @@ public class TCPMessageChannel implements AutoCloseable {
 
     public TCPMessageChannel(
         Config config,
-        StreamCodecSchema<ByteBuffer> schema,
-        Map<Short, StreamCodec<? extends Message<?>>> streamCodecs,
+        MessageAccess messageAccess,
         Supplier<ByteBuffer> frameReader,
         Consumer<ByteBuffer> frameWriter
     ) {
-        this.tcpMessageReadChannel = new TCPMessageReadChannel(config, schema, streamCodecs, frameReader);
-        this.tcpMessageWriteChannel = new TCPMessageWriteChannel(config, schema, streamCodecs, frameWriter);
+        this.tcpMessageReadChannel = new TCPMessageReadChannel(config, messageAccess, frameReader);
+        this.tcpMessageWriteChannel = new TCPMessageWriteChannel(config, messageAccess, frameWriter);
     }
 
     @Override
     public void close() {}
 
-    public void sendMessage(Message<?> message) {
+    public void sendMessage(Message message) {
         tcpMessageWriteChannel.sendMessage(message);
     }
 
@@ -49,7 +46,7 @@ public class TCPMessageChannel implements AutoCloseable {
      * Pull the next decoded message if available. If the current inbound frame runs out, fetch another from
      * {@code frameReader}.
      */
-    public @Nullable Message<?> pollMessage() {
+    public @Nullable Message pollMessage() {
         return tcpMessageReadChannel.pollMessage();
     }
 }

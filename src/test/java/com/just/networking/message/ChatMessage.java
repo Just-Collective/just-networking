@@ -6,7 +6,9 @@ import com.just.codec.stream.impl.StreamCodecs;
 
 import com.just.networking.impl.message.Message;
 
-public record ChatMessage(String message) implements Message<ChatMessage> {
+public record ChatMessage(String message) implements Message {
+
+    public static final String ID = "chat";
 
     public static final StreamCodec<ChatMessage> STREAM_CODEC = RecordStreamCodec.of(
         StreamCodecs.STRING_UTF8,
@@ -15,12 +17,7 @@ public record ChatMessage(String message) implements Message<ChatMessage> {
     );
 
     @Override
-    public short id() {
-        return 1;
-    }
-
-    @Override
-    public StreamCodec<ChatMessage> codec() {
-        return STREAM_CODEC;
+    public String getId() {
+        return ID;
     }
 }

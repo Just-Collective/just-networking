@@ -6,7 +6,9 @@ import com.just.codec.stream.impl.StreamCodecs;
 
 import com.just.networking.impl.message.Message;
 
-public record EchoMessage(String message) implements Message<EchoMessage> {
+public record EchoMessage(String message) implements Message {
+
+    public static final String ID = "echo";
 
     public static final StreamCodec<EchoMessage> STREAM_CODEC = RecordStreamCodec.of(
         StreamCodecs.STRING_UTF8,
@@ -15,12 +17,7 @@ public record EchoMessage(String message) implements Message<EchoMessage> {
     );
 
     @Override
-    public short id() {
-        return 3;
-    }
-
-    @Override
-    public StreamCodec<EchoMessage> codec() {
-        return STREAM_CODEC;
+    public String getId() {
+        return ID;
     }
 }

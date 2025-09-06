@@ -6,7 +6,9 @@ import com.just.codec.stream.impl.StreamCodecs;
 
 import com.just.networking.impl.message.Message;
 
-public record PingMessage(long epochMillis) implements Message<PingMessage> {
+public record PingMessage(long epochMillis) implements Message {
+
+    public static final String ID = "ping";
 
     public static final StreamCodec<PingMessage> STREAM_CODEC = RecordStreamCodec.of(
         StreamCodecs.LONG,
@@ -15,12 +17,7 @@ public record PingMessage(long epochMillis) implements Message<PingMessage> {
     );
 
     @Override
-    public short id() {
-        return 2;
-    }
-
-    @Override
-    public StreamCodec<PingMessage> codec() {
-        return STREAM_CODEC;
+    public String getId() {
+        return ID;
     }
 }

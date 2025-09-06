@@ -1,29 +1,22 @@
 package com.just.networking.impl.message.server;
 
 import com.just.codec.stream.StreamCodec;
-import com.just.codec.stream.schema.StreamCodecSchema;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Map;
 
 import com.just.networking.impl.frame.server.TCPFrameReadLoop;
 import com.just.networking.impl.message.Message;
+import com.just.networking.impl.message.MessageAccess;
 import com.just.networking.impl.message.TCPMessageConnection;
 import com.just.networking.server.ReadLoop;
 
 public final class TCPMessageReadLoop<C extends TCPMessageConnection> implements ReadLoop<C, MessageReadLoopHandler<C>> {
 
-    private final StreamCodecSchema<ByteBuffer> schema;
+    private final MessageAccess messageAccess;
 
-    private final Map<Short, StreamCodec<? extends Message<?>>> codecs;
-
-    public TCPMessageReadLoop(
-        StreamCodecSchema<ByteBuffer> schema,
-        Map<Short, StreamCodec<? extends Message<?>>> codecs
-    ) {
-        this.schema = schema;
-        this.codecs = codecs;
+    public TCPMessageReadLoop(MessageAccess messageAccess) {
+        this.messageAccess = messageAccess;
     }
 
     @Override
@@ -53,12 +46,13 @@ public final class TCPMessageReadLoop<C extends TCPMessageConnection> implements
 
             frame.mark();
 
-            var typeId = frame.getShort();
+            var networkId = frame.getShort();
 
             @SuppressWarnings("unchecked")
-            StreamCodec<Message<?>> codec = (StreamCodec<Message<?>>) codecs.get(typeId);
+            StreamCodec<Message> codec = (StreamCodec<Message>) messageAccess.getCodecOrNull(networkId);
+
             if (codec == null) {
-                handler.onUnknownType(connection, typeId, frame.asReadOnlyBuffer());
+                handler.onUnknownType(connection, networkId, frame.asReadOnlyBuffer());
                 // We cannot recover without knowing payload length; abort this frame.
                 return;
             }
@@ -67,12 +61,12 @@ public final class TCPMessageReadLoop<C extends TCPMessageConnection> implements
 
             try {
                 // must consume exactly its payload
-                var message = codec.decode(schema, frame);
+                var message = codec.decode(messageAccess.getSchema(), frame);
                 handler.onReceiveMessage(connection, message);
             } catch (Exception e) {
                 // Provide remaining bytes of this message (unknown length); roll back to typeId for context
                 frame.reset();
-                handler.onDecodeError(connection, typeId, frame.asReadOnlyBuffer(), e);
+                handler.onDecodeError(connection, networkId, frame.asReadOnlyBuffer(), e);
                 // abort this frame to avoid desync
                 return;
             }
@@ -81,7 +75,7 @@ public final class TCPMessageReadLoop<C extends TCPMessageConnection> implements
             if (frame.position() <= before) {
                 handler.onDecodeError(
                     connection,
-                    typeId,
+                    networkId,
                     frame.asReadOnlyBuffer(),
                     new IOException("Codec did not advance buffer; cannot delimit messages without lengths")
                 );

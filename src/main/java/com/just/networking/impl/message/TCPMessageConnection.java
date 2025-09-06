@@ -1,12 +1,8 @@
 package com.just.networking.impl.message;
 
-import com.just.codec.stream.StreamCodec;
-import com.just.codec.stream.schema.StreamCodecSchema;
 import com.just.core.functional.result.Result;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.Map;
 
 import com.just.networking.Connection;
 import com.just.networking.config.Config;
@@ -20,17 +16,11 @@ public class TCPMessageConnection implements Connection<TCPMessageTransport> {
 
     public TCPMessageConnection(
         Config config,
-        StreamCodecSchema<ByteBuffer> schema,
-        Map<Short, StreamCodec<? extends Message<?>>> streamCodecs,
+        MessageAccess messageAccess,
         TCPFrameConnection tcpFrameConnection
     ) {
         this.tcpFrameConnection = tcpFrameConnection;
-        this.tcpMessageTransport = new TCPMessageTransport(
-            config,
-            schema,
-            streamCodecs,
-            tcpFrameConnection.transport()
-        );
+        this.tcpMessageTransport = new TCPMessageTransport(config, messageAccess, tcpFrameConnection.transport());
     }
 
     @Override

@@ -1,16 +1,12 @@
 package com.just.networking.impl.message.client;
 
-import com.just.codec.stream.StreamCodec;
-import com.just.codec.stream.schema.StreamCodecSchema;
 import com.just.core.functional.result.Result;
 
 import java.net.SocketAddress;
-import java.nio.ByteBuffer;
-import java.util.Map;
 
 import com.just.networking.config.Config;
 import com.just.networking.impl.frame.client.TCPFrameClient;
-import com.just.networking.impl.message.Message;
+import com.just.networking.impl.message.MessageAccess;
 import com.just.networking.impl.message.TCPMessageConnection;
 import com.just.networking.impl.tcp.client.TCPClient;
 
@@ -18,29 +14,24 @@ public class TCPMessageClient {
 
     private final Config config;
 
-    private final Map<Short, StreamCodec<? extends Message<?>>> streamCodecs;
-
-    private final StreamCodecSchema<ByteBuffer> schema;
+    private final MessageAccess messageAccess;
 
     private final TCPFrameClient tcpFrameClient;
 
     public TCPMessageClient(
         Config config,
-        StreamCodecSchema<ByteBuffer> schema,
-        Map<Short, StreamCodec<? extends Message<?>>> streamCodecs
+        MessageAccess messageAccess
     ) {
-        this(config, schema, streamCodecs, new TCPFrameClient(config));
+        this(config, messageAccess, new TCPFrameClient(config));
     }
 
     public TCPMessageClient(
         Config config,
-        StreamCodecSchema<ByteBuffer> schema,
-        Map<Short, StreamCodec<? extends Message<?>>> streamCodecs,
+        MessageAccess messageAccess,
         TCPFrameClient tcpFrameClient
     ) {
         this.config = config;
-        this.streamCodecs = streamCodecs;
-        this.schema = schema;
+        this.messageAccess = messageAccess;
         this.tcpFrameClient = tcpFrameClient;
     }
 
@@ -52,7 +43,7 @@ public class TCPMessageClient {
 
         if (result.isOk()) {
             // Promote the connection to a TCPMessageConnection type.
-            return Result.ok(new TCPMessageConnection(config, schema, streamCodecs, result.unwrap()));
+            return Result.ok(new TCPMessageConnection(config, messageAccess, result.unwrap()));
         }
 
         return Result.err(result.unwrapErr());

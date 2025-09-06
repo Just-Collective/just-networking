@@ -10,7 +10,7 @@ public interface MessageReadLoopHandler<C extends TCPMessageConnection> {
     default void onConnect(C connection) {}
 
     /** Called for each successfully decoded message. */
-    void onReceiveMessage(C connection, Message<?> message);
+    void onReceiveMessage(C connection, Message message);
 
     /** Called when a frame's typeId has no matching codec. Payload is read-only. */
     default void onUnknownType(C connection, short typeId, ByteBuffer payload) {}

@@ -1,19 +1,15 @@
 package com.just.networking.impl.message.server;
 
-import com.just.codec.stream.StreamCodec;
-import com.just.codec.stream.schema.StreamCodecSchema;
 import com.just.core.functional.result.Result;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.nio.ByteBuffer;
-import java.util.Map;
 
 import com.just.networking.config.Config;
 import com.just.networking.impl.frame.server.TCPFrameServer;
-import com.just.networking.impl.message.Message;
+import com.just.networking.impl.message.MessageAccess;
 import com.just.networking.impl.tcp.server.TCPServer;
 
 public class TCPMessageServer {
@@ -22,29 +18,24 @@ public class TCPMessageServer {
 
     private final Config config;
 
-    private final StreamCodecSchema<ByteBuffer> schema;
-
-    private final Map<Short, StreamCodec<? extends Message<?>>> streamCodecs;
+    private final MessageAccess messageAccess;
 
     private final TCPFrameServer tcpFrameServer;
 
     public TCPMessageServer(
         Config config,
-        StreamCodecSchema<ByteBuffer> schema,
-        Map<Short, StreamCodec<? extends Message<?>>> streamCodecs
+        MessageAccess messageAccess
     ) {
-        this(config, schema, streamCodecs, new TCPFrameServer(config));
+        this(config, messageAccess, new TCPFrameServer(config));
     }
 
     public TCPMessageServer(
         Config config,
-        StreamCodecSchema<ByteBuffer> schema,
-        Map<Short, StreamCodec<? extends Message<?>>> streamCodecs,
+        MessageAccess messageAccess,
         TCPFrameServer tcpFrameServer
     ) {
         this.config = config;
-        this.schema = schema;
-        this.streamCodecs = streamCodecs;
+        this.messageAccess = messageAccess;
         this.tcpFrameServer = tcpFrameServer;
     }
 
@@ -69,7 +60,7 @@ public class TCPMessageServer {
         );
 
         return result.map(
-            connection -> new TCPMessageServerConnection(config, schema, streamCodecs, connection)
+            connection -> new TCPMessageServerConnection(config, messageAccess, connection)
         );
     }
 }

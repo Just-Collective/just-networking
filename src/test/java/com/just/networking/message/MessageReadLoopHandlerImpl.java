@@ -27,7 +27,7 @@ public class MessageReadLoopHandlerImpl implements MessageReadLoopHandler<TCPMes
     }
 
     @Override
-    public void onReceiveMessage(TCPMessageConnection connection, Message<?> m) {
+    public void onReceiveMessage(TCPMessageConnection connection, Message m) {
         if (!authorized) {
             if (m instanceof ChatMessage(String message) && message.equals("1234")) {
                 this.authorized = true;
