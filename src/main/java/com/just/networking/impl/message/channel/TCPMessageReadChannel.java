@@ -67,4 +67,8 @@ public class TCPMessageReadChannel {
             return null;
         }
     }
+
+    public MessageAccess getMessageAccess() {
+        return messageAccess;
+    }
 }

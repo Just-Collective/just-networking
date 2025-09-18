@@ -43,4 +43,8 @@ public final class TCPMessageServerConnection implements ServerConnection<TCPMes
     public Result<Void, IOException> closeWithResult() {
         return tcpFrameServerConnection.closeWithResult();
     }
+
+    public MessageAccess getMessageAccess() {
+        return messageAccess;
+    }
 }

@@ -36,6 +36,10 @@ public final class TCPMessageReadLoop<C extends TCPMessageConnection> implements
         }
     }
 
+    public MessageAccess getMessageAccess() {
+        return messageAccess;
+    }
+
     private void decodeFrameToMessages(C connection, MessageReadLoopHandler<C> handler, ByteBuffer frame) {
         while (true) {
             // Need at least a typeID.
@@ -88,5 +92,4 @@ public final class TCPMessageReadLoop<C extends TCPMessageConnection> implements
             }
         }
     }
-
 }

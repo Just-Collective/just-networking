@@ -48,4 +48,8 @@ public class TCPMessageClient {
 
         return Result.err(result.unwrapErr());
     }
+
+    public MessageAccess getMessageAccess() {
+        return messageAccess;
+    }
 }

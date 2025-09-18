@@ -97,4 +97,8 @@ public class TCPMessageWriteChannel {
         frameWriter.accept(outFrame);
         outFrame.clear();
     }
+
+    public MessageAccess getMessageAccess() {
+        return messageAccess;
+    }
 }

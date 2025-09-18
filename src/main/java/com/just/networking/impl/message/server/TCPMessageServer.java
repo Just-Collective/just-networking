@@ -63,4 +63,8 @@ public class TCPMessageServer {
             connection -> new TCPMessageServerConnection(config, messageAccess, connection)
         );
     }
+
+    public MessageAccess getMessageAccess() {
+        return messageAccess;
+    }
 }
